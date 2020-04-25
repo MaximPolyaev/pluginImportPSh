@@ -1,0 +1,122 @@
+/**
+* 2007-2020 PrestaShop
+*
+* NOTICE OF LICENSE
+*
+* This source file is subject to the Academic Free License (AFL 3.0)
+* that is bundled with this package in the file LICENSE.txt.
+* It is also available through the world-wide-web at this URL:
+* http://opensource.org/licenses/afl-3.0.php
+* If you did not receive a copy of the license and are unable to
+* obtain it through the world-wide-web, please send an email
+* to license@prestashop.com so we can send you a copy immediately.
+*
+* DISCLAIMER
+*
+* Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+* versions in the future. If you wish to customize PrestaShop for your
+* needs please refer to http://www.prestashop.com for more information.
+*
+*  @author    PrestaShop SA <contact@prestashop.com>
+*  @copyright 2007-2020 PrestaShop SA
+*  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+*  International Registered Trademark & Property of PrestaShop SA
+*
+* Don't forget to prefix your containers with your own identifier
+* to avoid any conflicts with others containers.
+*/
+.mp-stepper-horizontal {
+    display: table;
+    width: 100%;
+    margin: 0 auto;
+    background-color: #FFFFFF;
+}
+
+.mp-stepper-horizontal .mp-step {
+    display: table-cell;
+    position: relative;
+    padding: 24px;
+    width: 33.3%
+}
+
+.mp-stepper-horizontal .mp-step:first-child .mp-step-bar-left,
+.mp-stepper-horizontal .mp-step:last-child .mp-step-bar-right {
+    display: none;
+}
+
+.mp-stepper-horizontal .mp-step .mp-step-circle {
+    width: 30px;
+    height: 30px;
+    margin: 0 auto;
+    background-color: #999999;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 30px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #FFFFFF;
+}
+
+.mp-stepper-horizontal .mp-step.active .mp-step-circle {
+    background-color: rgb(33, 150, 243);
+}
+
+.mp-stepper-horizontal .mp-step .mp-step-title {
+    margin-top: 16px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.mp-stepper-horizontal .mp-step .mp-step-title,
+.mp-stepper-horizontal .mp-step .mp-step-optional {
+    text-align: center;
+    color: rgba(0, 0, 0, .26);
+}
+
+.mp-stepper-horizontal .mp-step.active .mp-step-title {
+    font-weight: 600;
+    color: rgba(0, 0, 0, .87);
+}
+
+.mp-stepper-horizontal .mp-step .mp-step-optional {
+    font-size: 1rem;
+}
+
+.mp-stepper-horizontal .mp-step.active .mp-step-optional {
+    color: rgba(0, 0, 0, .54);
+}
+
+.mp-stepper-horizontal .mp-step .mp-step-bar-left,
+.mp-stepper-horizontal .mp-step .mp-step-bar-right {
+    position: absolute;
+    top: 39px;
+    height: 1px;
+    border-top: 1px solid #DDDDDD;
+}
+
+.mp-stepper-horizontal .mp-step .mp-step-bar-right {
+    right: 0;
+    left: 50%;
+    margin-left: 20px;
+}
+
+.mp-stepper-horizontal .mp-step .mp-step-bar-left {
+    left: 0;
+    right: 50%;
+    margin-right: 20px;
+}
+
+.mp-stepper-horizontal .mp-step-optional i {
+    font-size: 1.2rem;
+    margin-left: 5px;
+    position: relative;
+    bottom: -3px;
+}
+
+.mp-stepper-horizontal .mp-error-optional {
+    color: #dc2e2e !important;
+}
+
+.mp-stepper-horizontal .mp-done-optional {
+    color: #0d9735 !important;
+}
