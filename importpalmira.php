@@ -37,7 +37,6 @@ class importpalmira extends Module
 {
     private $form;
 
-
     public function __construct()
     {
         $this->name = 'importpalmira';
@@ -52,7 +51,6 @@ class importpalmira extends Module
         $this->bootstrap = true;
 
         parent::__construct();
-
 
         $this->displayName = $this->trans('Import Palmira', [], 'Modules.Importpalmira.Importpalmira');
         $this->description = $this->getTranslator()->trans('Import products of CSV or XML files', [], 'Modules.Importpalmira.Importpalmira');
@@ -97,9 +95,7 @@ class importpalmira extends Module
         // Send variable to template .tpl
         $this->context->smarty->assign('module_dir', $this->_path);
 
-
         $output .= $this->context->smarty->fetch($this->local_path . 'views/templates/admin/configure.tpl');
-
 
         $this->context->controller->addJS($this->_path . 'views/js/back.js');
         $this->context->controller->addCSS($this->_path . 'views/css/back.css');
@@ -119,8 +115,6 @@ class importpalmira extends Module
 
         return $this->display(__FILE__, 'step_one.tpl');
     }
-
-
 
     public function isUsingNewTranslationSystem()
     {
