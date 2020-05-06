@@ -28,9 +28,8 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+use MaximCode\ImportPalmira\ImportForm as ImportForm;
 use Symfony\Component\VarDumper\VarDumper;
-
-include_once(_PS_MODULE_DIR_ . 'importpalmira/classes/ImportForm.php');
 
 
 class importpalmira extends Module
@@ -58,6 +57,7 @@ class importpalmira extends Module
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
 
         $this->form = new ImportForm($this, $this->table, $this->context, $this->identifier);
+
     }
 
     /**
@@ -83,14 +83,26 @@ class importpalmira extends Module
      */
     public function getContent()
     {
-        $output = $this->renderStepOne();
-
         /**
          * If values have been submitted in the form, process.
          */
         if (((bool)Tools::isSubmit('submitImportpalmiraModule')) == true) {
             VarDumper::dump("Submit event");
+            VarDumper::dump(Tools::getAllValues());
         }
+
+        switch(Tools::getValue('step')) {
+            case 1:
+                $output = $this->renderStepTwo();
+                break;
+            case 2:
+                $output = $this->renderStepThree();
+                break;
+            default:
+                $output = $this->renderStepOne();
+                break;
+        }
+
 
         // Send variable to template .tpl
         $this->context->smarty->assign('module_dir', $this->_path);
@@ -112,8 +124,38 @@ class importpalmira extends Module
 
         $formDisplay = $this->form->step_one();
         $this->context->smarty->assign('form_step_one', $formDisplay);
+//        $form = $this->get('prestashop.adapter.performance.form_handler')->getForm();
+//        $contactForm = $form->createView();
+//        $contactForm = "test";
+//        $this->context->smarty->assign('form_step_one', $contactForm);
 
         return $this->display(__FILE__, 'step_one.tpl');
+    }
+
+    public function renderStepTwo()
+    {
+        if (Tools::getValue('controller') != 'AdminModules' && Tools::getValue('configure') != $this->name) {
+            return;
+        }
+
+//        $formDisplay = $this->form->step_two();
+        $formDisplay = $this->form->step_two();
+        $this->context->smarty->assign('form_step_two', $formDisplay);
+
+        return $this->display(__FILE__, 'step_two.tpl');
+    }
+
+    public function renderStepThree()
+    {
+        if (Tools::getValue('controller') != 'AdminModules' && Tools::getValue('configure') != $this->name) {
+            return;
+        }
+
+////        $formDisplay = $this->form->step_two();
+//        $formDisplay = $this->form->step_two();
+//        $this->context->smarty->assign('form_step_two', $formDisplay);
+
+        return $this->display(__FILE__, 'step_three.tpl');
     }
 
     public function isUsingNewTranslationSystem()

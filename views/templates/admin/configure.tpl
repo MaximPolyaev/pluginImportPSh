@@ -23,10 +23,10 @@
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 
-<div class="moduleconfig-content">
-	<div class="row">
-		<div class="col-xs-12">
-      <img src="{$module_dir|escape:'html':'UTF-8'}views/img/logo.jpg" alt="img">
-		</div>
-	</div>
-</div>
+{*<div class="moduleconfig-content">*}
+{*	<div class="row">*}
+{*		<div class="col-xs-12">*}
+{*      <img src="{$module_dir|escape:'html':'UTF-8'}views/img/logo.jpg" alt="img">*}
+{*		</div>*}
+{*	</div>*}
+{*</div>*}

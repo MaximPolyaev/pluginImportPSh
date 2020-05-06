@@ -38,6 +38,13 @@ class ImportForm
     private $context;
     private $identifier;
 
+    /**
+     * ImportForm constructor.
+     * @param Module $module
+     * @param $table
+     * @param $context
+     * @param $identifier
+     */
     public function __construct(Module $module, $table, $context, $identifier)
     {
         $this->module = $module;
