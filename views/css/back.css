@@ -181,6 +181,8 @@
     box-shadow: inset 0px 0px 0px 60px #7ac142;
   }
 }
-
-
 /* ======== END checkmark ========= */
+
+.btn-primary {
+  text-transform: none !important;
+}

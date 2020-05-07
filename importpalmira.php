@@ -28,15 +28,15 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-use MaximCode\ImportPalmira\Controller\DemoController;
 use MaximCode\ImportPalmira\ImportForm as ImportForm;
-use PrestaShopBundle\Controller\Admin\Configure\AdvancedParameters\ImportController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\VarDumper\VarDumper;
 
 
 class importpalmira extends Module
 {
     private $form;
+    private $step;
 
     public function __construct()
     {
@@ -58,8 +58,8 @@ class importpalmira extends Module
 
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
 
-        $this->form = new ImportForm($this, $this->table, $this->context, $this->identifier);
-
+        $this->step = Tools::getValue('step') ? Tools::getValue('step') : 0;
+        $this->form = new ImportForm($this, $this->table, $this->context, $this->identifier, $this->step);
     }
 
     /**
@@ -85,80 +85,37 @@ class importpalmira extends Module
      */
     public function getContent()
     {
-        /**
-         * If values have been submitted in the form, process.
-         */
-        if (((bool)Tools::isSubmit('submitImportpalmiraModule')) == true) {
-            VarDumper::dump("Submit event");
-            VarDumper::dump(Tools::getAllValues());
-        }
+//        /**
+//         * If values have been submitted in the form, process.
+//         */
+//        if ((bool)Tools::isSubmit('submitImportpalmiraModule')) {
+//            VarDumper::dump(Tools::getAllValues());
+//        }
 
-        switch(Tools::getValue('step')) {
-            case 1:
-                $output = $this->renderStepTwo();
-                break;
-            case 2:
-                $output = $this->renderStepThree();
-                break;
-            default:
-                $output = $this->renderStepOne();
-                break;
-        }
-
-
-        // Send variable to template .tpl
-        $this->context->smarty->assign('module_dir', $this->_path);
-
-        $output .= $this->context->smarty->fetch($this->local_path . 'views/templates/admin/configure.tpl');
+        $output = $this->renderView();
 
         $this->context->controller->addJS($this->_path . 'views/js/back.js');
         $this->context->controller->addCSS($this->_path . 'views/css/back.css');
 
-
         return $output;
     }
 
-    public function renderStepOne()
+    public function renderView()
     {
         if (Tools::getValue('controller') != 'AdminModules' && Tools::getValue('configure') != $this->name) {
             return;
         }
 
-        $formDisplay = $this->form->step_one();
-        $this->context->smarty->assign('form_step_one', $formDisplay);
-//        $form = $this->get('prestashop.adapter.performance.form_handler')->getForm();
-//        $contactForm = $form->createView();
-//        $contactForm = "test";
-//        $this->context->smarty->assign('form_step_one', $contactForm);
-
-        return $this->display(__FILE__, 'step_one.tpl');
-    }
-
-    public function renderStepTwo()
-    {
-        if (Tools::getValue('controller') != 'AdminModules' && Tools::getValue('configure') != $this->name) {
-            return;
+        if(+$this->step === 0 || +$this->step === 1) {
+            $formView = $this->form->getView();
+            $this->context->smarty->assign('form_view', $formView);
+            return $this->display(__FILE__, 'forms.tpl');
+        } elseif (+$this->step === 2) {
+            return $this->display(__FILE__, 'final.tpl');
         }
 
-        $formDisplay = $this->form->step_two();
-        $this->context->smarty->assign('form_step_two', $formDisplay);
-
-        return $this->display(__FILE__, 'step_two.tpl');
-    }
-
-    public function renderStepThree()
-    {
-        if (Tools::getValue('controller') != 'AdminModules' && Tools::getValue('configure') != $this->name) {
-            return;
-        }
-
-//        $formDisplay = $this->form->step_two();
-//        $this->context->smarty->assign('form_step_two', $formDisplay);
-
-        $fin = new \PrestaShop\PrestaShop\Core\Import\EntityField\Provider\ProductFieldsProvider($this->getTranslator());
-        VarDumper::dump($fin->getCollection());
-
-        return $this->display(__FILE__, 'step_three.tpl');
+        return new RedirectResponse($this->context->link->getAdminLink('AdminModules', false)
+            . '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name .  '&token='. Tools::getAdminTokenLite('AdminModules') . '&step=0');
     }
 
     public function isUsingNewTranslationSystem()

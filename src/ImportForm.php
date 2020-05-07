@@ -4,36 +4,45 @@
 namespace MaximCode\ImportPalmira;
 
 
-use Module;
 use PrestaShop\PrestaShop\Adapter\Entity\Configuration;
 use PrestaShop\PrestaShop\Adapter\Entity\HelperForm;
 use PrestaShop\PrestaShop\Adapter\Entity\Tools;
 use PrestaShop\PrestaShop\Core\Import\EntityField\Provider\ProductFieldsProvider;
-use Symfony\Component\VarDumper\VarDumper;
+
 
 class ImportForm
 {
-    private const TRANS_DOMAIN = 'Modules.Importpalmira.Importform';
+    private const TRANS_DOMAIN = 'Modules.Importpalmira.Importpalmira';
 
     private $module;
     private $translator;
     private $table;
     private $context;
     private $identifier;
+    private $step;
 
-    public function __construct(Module $module, $table, $context, $identifier)
+    /**
+     * ImportForm constructor.
+     * @param $module
+     * @param $table
+     * @param $context
+     * @param $identifier
+     * @param $step
+     */
+    public function __construct($module, $table, $context, $identifier, $step)
     {
         $this->module = $module;
         $this->translator = $this->module->getTranslator();
         $this->table = $table;
         $this->context = $context;
         $this->identifier = $identifier;
+        $this->step = $step;
     }
 
     /**
      * Create the form that will be displayed in the configuration of your module.
      */
-    public function step_one()
+    public function getView()
     {
         $helper = new HelperForm();
 
@@ -48,17 +57,37 @@ class ImportForm
         $helper->identifier = $this->identifier;
         $helper->submit_action = 'submitImportpalmiraModule';
         $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
-            . '&configure=' . $this->module->name . '&tab_module=' . $this->module->tab . '&module_name=' . $this->module->name . '&step=1';
+            . '&configure=' . $this->module->name . '&tab_module=' . $this->module->tab . '&module_name=' . $this->module->name . '&step=' . ($this->step + 1);
 
         $helper->token = Tools::getAdminTokenLite('AdminModules');
 
         $helper->tpl_vars = array(
-            'fields_value' => $this->getCfgOneFormValues(),
+            'fields_value' => $this->getCfgValues(),
             'languages' => $this->context->controller->getLanguages(),
             'id_language' => $this->context->language->id,
         );
 
-        return $helper->generateForm($this->getCfgOneForm());
+        $helper->show_cancel_button = true;
+
+        return $helper->generateForm($this->step === 0 ? $this->getCfgOneForm() : $this->getCfgTwoForm());
+    }
+
+    /**
+     * Set values for the inputs.
+     */
+    private function getCfgValues()
+    {
+        return [
+            'IMPORTPALMIRA_DELETE_PRODUCTS' => false, // удалить все товары перед импортом? : step 1
+            'IMPORTPALMIRA_CSV_SEPARATOR' => ';', // Разделитель колонк csv : step 1
+            'IMPORTPALMIRA_FORCE_NUMBERING' => false, // Обязательная ID нумерация : step 1
+            'IMPORTPALMIRA_REFERENCE_KEY' => 1, // Номер уникального ключа : step 1
+            'IMPORTPALMIRA_XML_SINGLE_NAME' => 'offer', // имя одной сущности продукта в xml файле : step 1
+            'IMPORTPALMIRA_FILE_IMPORT' => '', // имя файла импорта : step 1
+            'IMPORTPALMIRA_FILE_IMPORT_SAVE' => false, // сохранять файл импорта или нет : step 1
+            'IMPORTPALMIRA_NAME_CFG' => '', // имя конфигурации для сохранения : step 2
+            'IMPORTPALMIRA_NUM_SKIP_ROWS' => 1, // сколько пропустить линий? : step 2
+        ];
     }
 
     /**
@@ -121,6 +150,20 @@ class ImportForm
         ]];
 
         $cfg[] = ['form' => [
+            'title' => $this->module->getTranslator()->trans('Import settings for СSV files', [], self::TRANS_DOMAIN),
+            'input' => [
+                [
+                    'type' => 'text',
+                    'col' => 3,
+                    'label' => $this->module->getTranslator()->trans('Field separator', [], self::TRANS_DOMAIN),
+                    'desc' => $this->module->getTranslator()->trans('e.g. vendorCode; price; ean13', [], self::TRANS_DOMAIN),
+                    'name' => 'IMPORTPALMIRA_CSV_SEPARATOR',
+                ]
+            ],
+            'line_hr' => true
+        ]];
+
+        $cfg[] = ['form' => [
             'title' => $this->module->getTranslator()->trans('Other import settings', [], self::TRANS_DOMAIN),
             'input' => [
                 [
@@ -170,7 +213,7 @@ class ImportForm
                     'type' => 'select',
                     'col' => 3,
                     'label' => $this->module->getTranslator()->trans('Select the link you want to use as a key', [], self::TRANS_DOMAIN),
-                    'desc' => $this->module->getTranslator()->trans('If you select “no link”, then the identifier will be selected as the default key', [], self::TRANS_DOMAIN),
+                    'desc' => $this->module->getTranslator()->trans('If you select “no reference”, then the identifier will be selected as the default key', [], self::TRANS_DOMAIN),
                     'name' => 'IMPORTPALMIRA_REFERENCE_KEY',
                     'options' => [
                         'query' => [
@@ -217,26 +260,10 @@ class ImportForm
     }
 
     /**
-     * Set values for the inputs.
+     * Create the structure of your form.
+     * @return mixed
      */
-    private function getCfgOneFormValues()
-    {
-        return [
-            'IMPORTPALMIRA_DELETE_PRODUCTS' => false,
-            'IMPORTPALMIRA_ACCOUNT_EMAIL' => Configuration::get('IMPORTPALMIRA_ACCOUNT_EMAIL', 'contact@prestashop.com'),
-            'IMPORTPALMIRA_ACCOUNT_PASSWORD' => Configuration::get('IMPORTPALMIRA_ACCOUNT_PASSWORD', null),
-            'IMPORTPALMIRA_CSV_SEPARATOR' => ';',
-            'IMPORTPALMIRA_FORCE_NUMBERING' => false,
-            'IMPORTPALMIRA_REFERENCE_KEY' => 1,
-            'IMPORTPALMIRA_XML_SINGLE_NAME' => 'offer',
-            'IMPORTPALMIRA_FILE_IMPORT' => '',
-            'IMPORTPALMIRA_FILE_IMPORT_SAVE' => false,
-            'IMPORTPALMIRA_FILE_TEST' => false,
-        ];
-    }
-
-
-    public function step_two()
+    private function getCfgTwoForm()
     {
         $productFieldsProvider = new ProductFieldsProvider($this->translator);
         $productFieldsCollection = $productFieldsProvider->getCollection();
@@ -287,62 +314,9 @@ class ImportForm
             ]
         ];
 
-        VarDumper::dump(count($productArrImport['header']));
-
-        $helper = new HelperForm();
-
-        $helper->show_toolbar = false;
-
-        $helper->table = $this->table;
-
-        $helper->module = $this->module;
-        $helper->default_form_language = $this->context->language->id;
-        $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG', 0);
-
-        $helper->identifier = $this->identifier;
-        $helper->submit_action = 'submitImportpalmiraModule';
-        $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
-            . '&configure=' . $this->module->name . '&tab_module=' . $this->module->tab . '&module_name=' . $this->module->name . '&step=2';
-
-        $helper->token = Tools::getAdminTokenLite('AdminModules');
-
-        $helper->tpl_vars = array(
-            'fields_value' => $this->getCfgTwoFormValues(),
-            'languages' => $this->context->controller->getLanguages(),
-            'id_language' => $this->context->language->id,
-        );
-
-        return $helper->generateForm($this->getCfgTwoForm($productFieldsCollection, $productArrImport));
-    }
-
-    public function getCfgTwoFormValues()
-    {
-        return [
-            'IMPORTPALMIRA_DELETE_PRODUCTS' => false,
-            'IMPORTPALMIRA_ACCOUNT_EMAIL' => Configuration::get('IMPORTPALMIRA_ACCOUNT_EMAIL', 'contact@prestashop.com'),
-            'IMPORTPALMIRA_ACCOUNT_PASSWORD' => Configuration::get('IMPORTPALMIRA_ACCOUNT_PASSWORD', null),
-            'IMPORTPALMIRA_CSV_SEPARATOR' => ';',
-            'IMPORTPALMIRA_FORCE_NUMBERING' => false,
-            'IMPORTPALMIRA_REFERENCE_KEY' => 1,
-            'IMPORTPALMIRA_XML_SINGLE_NAME' => 'offer',
-            'IMPORTPALMIRA_FILE_IMPORT' => '',
-            'IMPORTPALMIRA_FILE_IMPORT_SAVE' => false,
-            'IMPORTPALMIRA_FILE_TEST' => false,
-            'IMPORTPALMIRA_NAME_CFG' => false,
-            'IMPORTPALMIRA_NUM_SKIP_ROWS' => 1,
-        ];
-    }
-
-    /**
-     * Create the structure of your form.
-     * @param $productFieldsCollection
-     * @param $productArrImport
-     * @return mixed
-     */
-    private function getCfgTwoForm($productFieldsCollection, $productArrImport)
-    {
         $cfg[] = ['form' => [
-            'title' => $this->module->getTranslator()->trans('Совпадение ваших данных', [], self::TRANS_DOMAIN),
+            'title' => $this->module->getTranslator()->trans('Match your data', [], self::TRANS_DOMAIN),
+            'description' => $this->module->getTranslator()->trans('Please match each column of your source file to one of the destination columns.', [], self::TRANS_DOMAIN),
             'input' => [
                 [
                     'type' => 'text_save',
