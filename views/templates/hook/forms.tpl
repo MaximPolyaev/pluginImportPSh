@@ -27,6 +27,6 @@
   </div>
   <hr>
   <div>
-    {$form_step_one|escape:'UTF-8'}
+    {$form_view|escape:'UTF-8'}
   </div>
 </div>
