@@ -28,7 +28,9 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+use MaximCode\ImportPalmira\Controller\DemoController;
 use MaximCode\ImportPalmira\ImportForm as ImportForm;
+use PrestaShopBundle\Controller\Admin\Configure\AdvancedParameters\ImportController;
 use Symfony\Component\VarDumper\VarDumper;
 
 
@@ -138,7 +140,6 @@ class importpalmira extends Module
             return;
         }
 
-//        $formDisplay = $this->form->step_two();
         $formDisplay = $this->form->step_two();
         $this->context->smarty->assign('form_step_two', $formDisplay);
 
@@ -151,9 +152,11 @@ class importpalmira extends Module
             return;
         }
 
-////        $formDisplay = $this->form->step_two();
 //        $formDisplay = $this->form->step_two();
 //        $this->context->smarty->assign('form_step_two', $formDisplay);
+
+        $fin = new \PrestaShop\PrestaShop\Core\Import\EntityField\Provider\ProductFieldsProvider($this->getTranslator());
+        VarDumper::dump($fin->getCollection());
 
         return $this->display(__FILE__, 'step_three.tpl');
     }

@@ -8,6 +8,8 @@ use Module;
 use PrestaShop\PrestaShop\Adapter\Entity\Configuration;
 use PrestaShop\PrestaShop\Adapter\Entity\HelperForm;
 use PrestaShop\PrestaShop\Adapter\Entity\Tools;
+use PrestaShop\PrestaShop\Core\Import\EntityField\Provider\ProductFieldsProvider;
+use Symfony\Component\VarDumper\VarDumper;
 
 class ImportForm
 {
@@ -236,6 +238,57 @@ class ImportForm
 
     public function step_two()
     {
+        $productFieldsProvider = new ProductFieldsProvider($this->translator);
+        $productFieldsCollection = $productFieldsProvider->getCollection();
+
+        $productArrImport = [
+            'header' => ['ean13', 'name'],
+            'products' => [
+                [
+                    'ean13' => '234324234',
+                    'name' => 'pen'
+                ],
+                [
+                    'ean13' => '234324234',
+                    'name' => 'pen'
+                ],
+                [
+                    'ean13' => '234324234',
+                    'name' => 'pen'
+                ],
+                [
+                    'ean13' => '234324234',
+                    'name' => 'pen'
+                ],
+                [
+                    'ean13' => '234324234',
+                    'name' => 'pen'
+                ],
+                [
+                    'ean13' => '234324234',
+                    'name' => 'pen'
+                ],
+                [
+                    'ean13' => '234324234',
+                    'name' => 'pen'
+                ],
+                [
+                    'ean13' => '234324234',
+                    'name' => 'pen'
+                ],
+                [
+                    'ean13' => '234324234',
+                    'name' => 'pen'
+                ],
+                [
+                    'ean13' => '234324234',
+                    'name' => 'pen'
+                ]
+            ]
+        ];
+
+        VarDumper::dump(count($productArrImport['header']));
+
         $helper = new HelperForm();
 
         $helper->show_toolbar = false;
@@ -259,7 +312,7 @@ class ImportForm
             'id_language' => $this->context->language->id,
         );
 
-        return $helper->generateForm($this->getCfgTwoForm());
+        return $helper->generateForm($this->getCfgTwoForm($productFieldsCollection, $productArrImport));
     }
 
     public function getCfgTwoFormValues()
@@ -282,8 +335,11 @@ class ImportForm
 
     /**
      * Create the structure of your form.
+     * @param $productFieldsCollection
+     * @param $productArrImport
+     * @return mixed
      */
-    private function getCfgTwoForm()
+    private function getCfgTwoForm($productFieldsCollection, $productArrImport)
     {
         $cfg[] = ['form' => [
             'title' => $this->module->getTranslator()->trans('Совпадение ваших данных', [], self::TRANS_DOMAIN),
@@ -317,7 +373,9 @@ class ImportForm
                 [
                     'type' => 'election_table',
                     'name' => 'IMPORTPALMIRA_TYPE_VALUE',
-                    'col' => 12
+                    'col' => 12,
+                    'product_fields' => $productFieldsCollection,
+                    'product_arr_import' => $productArrImport
                 ]
             ],
             'submit' => [

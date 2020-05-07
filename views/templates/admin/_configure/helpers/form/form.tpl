@@ -974,211 +974,31 @@
                                   <table class="table table-bordered mp-table">
                                     <thead>
                                     <tr>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
-                                      <th>
-                                        <select name="{$input.name}[]">
-                                          <option value="no">Пропустить этот столбик</option>
-                                        </select>
-                                      </th>
+                                      {for $num=1 to $input.product_arr_import.header|@count}
+                                        <th>
+                                          <select name="{$input.name}[]">
+                                            <option value="no">Пропустить этот столбик</option>
+                                            {foreach from=$input.product_fields item=$field}
+                                              <option value="{$field->getName()}">{$field->getLabel()}</option>
+                                            {/foreach}
+                                          </select>
+                                        </th>
+                                      {/for}
                                     </tr>
                                     </thead>
                                     <tbody>
                                     <tr>
-                                      <td>filename 1</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
-                                      <td>sdfsdfsdfsdfsdf32</td>
+                                      {foreach from=$input.product_arr_import.header item=$value}
+                                        <td>{$value}</td>
+                                      {/foreach}
                                     </tr>
-                                    <tr>
-                                      <td>filename 2</td>
-                                      <td>sdfdsfdsfsdfsf</td>
-                                    </tr>
-                                    <tr>
-                                      <td>filename 3</td>
-                                      <td>sdfsdfsfdsdf</td>
-                                    </tr>
+                                    {foreach from=$input.product_arr_import.products item=$product}
+                                      <tr>
+                                        {foreach from=$product item=$value}
+                                          <td>{$value}</td>
+                                        {/foreach}
+                                      </tr>
+                                    {/foreach}
                                     </tbody>
                                   </table>
                                 </div>
