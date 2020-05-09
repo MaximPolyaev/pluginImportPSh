@@ -37,6 +37,8 @@ class ImportPalmira extends Module
 {
     private $form;
     private $step;
+    private $token;
+    private $url;
 
     public function __construct()
     {
@@ -53,13 +55,28 @@ class ImportPalmira extends Module
 
         parent::__construct();
 
-        $this->displayName = $this->trans('Import Palmira', [], 'Modules.Importpalmira.Importpalmira');
-        $this->description = $this->getTranslator()->trans('Import products of CSV or XML files', [], 'Modules.Importpalmira.Importpalmira');
+        $this->displayName = $this->trans(
+            'Import Palmira',
+            [],
+            'Modules.Importpalmira.Importpalmira'
+        );
+        $this->description = $this->trans(
+            'Import products of CSV or XML files',
+            [],
+            'Modules.Importpalmira.Importpalmira'
+        );
 
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
 
+        $this->url = $this->context->link->getAdminLink('AdminModules', false);
+        $this->url .= '&configure=' . $this->name;
+        $this->url .= '&tab_module=' . $this->tab;
+        $this->url .= '&module_name=' . $this->name;
+
+
         $this->step = Tools::getValue('step') ? Tools::getValue('step') : 0;
-        $this->form = new ImportForm($this, $this->table, $this->context, $this->identifier, $this->step);
+        $this->token = Tools::getAdminTokenLite('AdminModules');
+        $this->form = new ImportForm($this, $this->table, $this->context, $this->identifier, $this->step, $this->token);
     }
 
     /**
@@ -107,8 +124,7 @@ class ImportPalmira extends Module
             return $this->display(__FILE__, 'final.tpl');
         }
 
-        return new RedirectResponse($this->context->link->getAdminLink('AdminModules', false)
-            . '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name .  '&token='. Tools::getAdminTokenLite('AdminModules') . '&step=0');
+        return new RedirectResponse($this->url .  '&token=' . $this->token . '&step=0');
     }
 
     public function isUsingNewTranslationSystem()

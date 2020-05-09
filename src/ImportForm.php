@@ -26,21 +26,19 @@
 
 namespace MaximCode\ImportPalmira;
 
-use PrestaShop\PrestaShop\Adapter\Entity\Configuration;
 use PrestaShop\PrestaShop\Adapter\Entity\HelperForm;
-use PrestaShop\PrestaShop\Adapter\Entity\Tools;
 use PrestaShop\PrestaShop\Core\Import\EntityField\Provider\ProductFieldsProvider;
 
 class ImportForm
 {
-    const TRANS_DOMAIN = 'Modules.Importpalmira.Importpalmira';
-
     private $module;
     private $translator;
     private $table;
     private $context;
     private $identifier;
     private $step;
+    private $url;
+    private $token;
 
     /**
      * ImportForm constructor.
@@ -49,8 +47,9 @@ class ImportForm
      * @param $context
      * @param $identifier
      * @param $step
+     * @param $token
      */
-    public function __construct($module, $table, $context, $identifier, $step)
+    public function __construct($module, $table, $context, $identifier, $step, $token)
     {
         $this->module = $module;
         $this->translator = $this->module->getTranslator();
@@ -58,6 +57,13 @@ class ImportForm
         $this->context = $context;
         $this->identifier = $identifier;
         $this->step = $step;
+        $this->token = $token;
+
+        $this->url = $this->context->link->getAdminLink('AdminModules', false);
+        $this->url .= '&configure=' . $this->module->name;
+        $this->url .= '&tab_module=' . $this->module->tab;
+        $this->url .= '&module_name=' . $this->module->name;
+        $this->url .= '&step=' . ($this->step + 1);
     }
 
     /**
@@ -73,14 +79,13 @@ class ImportForm
 
         $helper->module = $this->module;
         $helper->default_form_language = $this->context->language->id;
-        $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG', 0);
+        $helper->allow_employee_form_lang = \Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG', 0);
 
         $helper->identifier = $this->identifier;
         $helper->submit_action = 'submitImportpalmiraModule';
-        $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
-            . '&configure=' . $this->module->name . '&tab_module=' . $this->module->tab . '&module_name=' . $this->module->name . '&step=' . ($this->step + 1);
+        $helper->currentIndex = $this->url;
 
-        $helper->token = Tools::getAdminTokenLite('AdminModules');
+        $helper->token = $this->token;
 
         $helper->tpl_vars = array(
             'fields_value' => $this->getCfgValues(),
@@ -119,124 +124,77 @@ class ImportForm
         $cfg = [];
 
         $cfg[] = ['form' => [
-            'title' => $this->module->getTranslator()->trans('Select file to import', [], self::TRANS_DOMAIN),
+            'title' => $this->translate('Select file to import'),
             'input' => [
                 [
                     'type' => 'file',
-                    'label' => $this->module->getTranslator()->trans('Choose file', [], self::TRANS_DOMAIN),
-                    'desc' => $this->module->getTranslator()->trans('Allowed formats: .csv, .xml. Maximum file size: %s.', [ini_get('upload_max_filesize')], self::TRANS_DOMAIN),
+                    'label' => $this->translate('Choose file'),
+                    'desc' => $this->translate(
+                        'Allowed formats: .csv, .xml. Maximum file size: %s.',
+                        [ini_get('upload_max_filesize')]
+                    ),
                     'name' => 'IMPORTPALMIRA_FILE_IMPORT',
                     'col' => 9,
                 ],
                 [
                     'type' => 'history_files',
-                    'label' => $this->module->getTranslator()->trans('Choose file from history', [], self::TRANS_DOMAIN),
+                    'label' => $this->translate('Choose file from history'),
                     'name' => 'IMPORTPALMIRA_TEST',
                     'col' => 6,
-                    'btnlink' => $this->context->link->getAdminLink('AdminModules', false)
-                        . '&configure=' . $this->module->name . '&tab_module=' . $this->module->tab . '&module_name=' . $this->module->name . "&token=" . Tools::getAdminTokenLite('AdminModules')
+                    'btnlink' => $this->url . "&token=" . $this->token
                 ],
-                [
-                    'type' => 'switch',
-                    'col' => 3,
-                    'label' => $this->module->getTranslator()->trans('Save file after import', [], self::TRANS_DOMAIN),
-                    'name' => 'IMPORTPALMIRA_FILE_IMPORT_SAVE',
-                    'is_bool' => true,
-                    'values' => [
-                        [
-                            'id' => 'active_on',
-                            'value' => true,
-                            'label' => $this->module->getTranslator()->trans('Enabled', [], self::TRANS_DOMAIN)
-                        ],
-                        [
-                            'id' => 'active_off',
-                            'value' => false,
-                            'label' => $this->module->getTranslator()->trans('Disabled', [], self::TRANS_DOMAIN)
-                        ]
-                    ]
-                ]
+                $this->getSwitchCfg(
+                    'IMPORTPALMIRA_FILE_IMPORT_SAVE',
+                    'Save file after import'
+                ),
             ],
             'line_hr' => true
         ]];
 
         $cfg[] = ['form' => [
-            'title' => $this->module->getTranslator()->trans('Import settings for XML files', [], self::TRANS_DOMAIN),
+            'title' => $this->translate('Import settings for XML files'),
             'input' => [
-                [
-                    'type' => 'text',
-                    'col' => 3,
-                    'label' => $this->module->getTranslator()->trans('Single name product', [], self::TRANS_DOMAIN),
-                    'name' => 'IMPORTPALMIRA_XML_SINGLE_NAME',
-                ]
+                $this->getInputTextCfg(
+                    'IMPORTPALMIRA_XML_SINGLE_NAME',
+                    'Single name product'
+                )
             ],
             'line_hr' => true
         ]];
 
         $cfg[] = ['form' => [
-            'title' => $this->module->getTranslator()->trans('Import settings for СSV files', [], self::TRANS_DOMAIN),
+            'title' => $this->translate('Import settings for СSV files'),
             'input' => [
-                [
-                    'type' => 'text',
-                    'col' => 3,
-                    'label' => $this->module->getTranslator()->trans('Field separator', [], self::TRANS_DOMAIN),
-                    'desc' => $this->module->getTranslator()->trans('e.g. vendorCode; price; ean13', [], self::TRANS_DOMAIN),
-                    'name' => 'IMPORTPALMIRA_CSV_SEPARATOR',
-                ]
+                $this->getInputTextCfg(
+                    'IMPORTPALMIRA_CSV_SEPARATOR',
+                    'Field separator',
+                    'e.g. vendorCode; price; ean13'
+                )
             ],
             'line_hr' => true
         ]];
 
         $cfg[] = ['form' => [
-            'title' => $this->module->getTranslator()->trans('Other import settings', [], self::TRANS_DOMAIN),
+            'title' => $this->translate('Other import settings'),
             'input' => [
-                [
-                    'type' => 'switch',
-                    'label' => $this->module->getTranslator()->trans('Delete all products before import', [], self::TRANS_DOMAIN),
-                    'name' => 'IMPORTPALMIRA_DELETE_PRODUCTS',
-                    'is_bool' => true,
-                    'values' => [
-                        [
-                            'id' => 'active_on',
-                            'value' => true,
-                            'label' => $this->module->getTranslator()->trans('Enabled', [], self::TRANS_DOMAIN)
-                        ],
-                        [
-                            'id' => 'active_off',
-                            'value' => false,
-                            'label' => $this->module->getTranslator()->trans('Disabled', [], self::TRANS_DOMAIN)
-                        ]
-                    ]
-                ],
-                [
-                    'type' => 'switch',
-                    'col' => 3,
-                    'label' => $this->module->getTranslator()->trans('Force ALL ID numbers', [], self::TRANS_DOMAIN),
-                    'name' => 'IMPORTPALMIRA_FORCE_NUMBERING',
-                    'desc' => $this->module->getTranslator()->trans(
-                        'If you enable this option, your imported items ID number will be used as-is. If you do
-                            not enable this option, the imported ID numbers will be ignored, and PrestaShop will instead
-                            create auto-incremented ID numbers for all the imported items.',
-                        [],
-                        self::TRANS_DOMAIN),
-                    'is_bool' => true,
-                    'values' => [
-                        [
-                            'id' => 'active_on',
-                            'value' => true,
-                            'label' => $this->module->getTranslator()->trans('Enabled', [], self::TRANS_DOMAIN)
-                        ],
-                        [
-                            'id' => 'active_off',
-                            'value' => false,
-                            'label' => $this->module->getTranslator()->trans('Disabled', [], self::TRANS_DOMAIN)
-                        ]
-                    ]
-                ],
+                $this->getSwitchCfg(
+                    'IMPORTPALMIRA_DELETE_PRODUCTS',
+                    'Delete all products before import'
+                ),
+                $this->getSwitchCfg(
+                    'IMPORTPALMIRA_FORCE_NUMBERING',
+                    'Force ALL ID numbers',
+                    'If you enable this option, your imported items ID number will be used as-is. If you do
+                            not enable this option, the imported ID numbers will be ignored, and PrestaShop will 
+                            instead create auto-incremented ID numbers for all the imported items.'
+                ),
                 [
                     'type' => 'select',
                     'col' => 3,
-                    'label' => $this->module->getTranslator()->trans('Select the link you want to use as a key', [], self::TRANS_DOMAIN),
-                    'desc' => $this->module->getTranslator()->trans('If you select “no reference”, then the identifier will be selected as the default key', [], self::TRANS_DOMAIN),
+                    'label' => $this->translate('Select the link you want to use as a key'),
+                    'desc' => $this->translate(
+                        'If you select “no reference”, then the identifier will be selected as the default key'
+                    ),
                     'name' => 'IMPORTPALMIRA_REFERENCE_KEY',
                     'options' => [
                         'query' => [
@@ -275,7 +233,7 @@ class ImportForm
                 ]
             ],
             'submit' => [
-                'title' => $this->module->getTranslator()->trans('Next step', [], self::TRANS_DOMAIN)
+                'title' => $this->translate('Next step')
             ]
         ]];
 
@@ -305,34 +263,6 @@ class ImportForm
                 [
                     'ean13' => '234324234',
                     'name' => 'pen'
-                ],
-                [
-                    'ean13' => '234324234',
-                    'name' => 'pen'
-                ],
-                [
-                    'ean13' => '234324234',
-                    'name' => 'pen'
-                ],
-                [
-                    'ean13' => '234324234',
-                    'name' => 'pen'
-                ],
-                [
-                    'ean13' => '234324234',
-                    'name' => 'pen'
-                ],
-                [
-                    'ean13' => '234324234',
-                    'name' => 'pen'
-                ],
-                [
-                    'ean13' => '234324234',
-                    'name' => 'pen'
-                ],
-                [
-                    'ean13' => '234324234',
-                    'name' => 'pen'
                 ]
             ]
         ];
@@ -340,29 +270,28 @@ class ImportForm
         $cfg = [];
 
         $cfg[] = ['form' => [
-            'title' => $this->module->getTranslator()->trans('Match your data', [], self::TRANS_DOMAIN),
-            'description' => $this->module->getTranslator()->trans('Please match each column of your source file to one of the destination columns.', [], self::TRANS_DOMAIN),
+            'title' => $this->translate('Match your data'),
+            'description' => $this->translate(
+                'Please match each column of your source file to one of the destination columns.'
+            ),
             'input' => [
                 [
                     'type' => 'text_save',
-                    'label' => $this->module->getTranslator()->trans('Save your data matching configuration', [], self::TRANS_DOMAIN),
+                    'label' => $this->translate('Save your data matching configuration'),
                     'name' => 'IMPORTPALMIRA_NAME_CFG',
                     'col' => 6,
                 ],
                 [
                     'type' => 'history_files',
-                    'label' => $this->module->getTranslator()->trans('Choose file from history', [], self::TRANS_DOMAIN),
+                    'label' => $this->translate('Choose file from history'),
                     'name' => 'IMPORTPALMIRA_TEST',
                     'col' => 6,
-                    'btnlink' => $this->context->link->getAdminLink('AdminModules', false)
-                        . '&configure=' . $this->module->name . '&tab_module=' . $this->module->tab . '&module_name=' . $this->module->name . "&token=" . Tools::getAdminTokenLite('AdminModules')
+                    'btnlink' => $this->url . "&token=" . $this->token
                 ],
-                [
-                    'type' => 'text',
-                    'col' => 3,
-                    'label' => $this->module->getTranslator()->trans('Rows to skip', [], self::TRANS_DOMAIN),
-                    'name' => 'IMPORTPALMIRA_NUM_SKIP_ROWS',
-                ]
+                $this->getInputTextCfg(
+                    'IMPORTPALMIRA_NUM_SKIP_ROWS',
+                    'Rows to skip'
+                )
             ],
             'line_hr' => true
         ]];
@@ -378,10 +307,66 @@ class ImportForm
                 ]
             ],
             'submit' => [
-                'title' => $this->module->getTranslator()->trans('Next step', [], self::TRANS_DOMAIN)
+                'title' => $this->translate('Next step')
             ]
         ]];
 
         return $cfg;
+    }
+
+    private function getInputTextCfg($name, $label = '', $desc = '')
+    {
+        $cfg = [
+            'type' => 'text',
+            'col' => 3,
+            'name' => $name
+        ];
+
+        if ($label !== '') {
+            $cfg['label'] = $this->translate($label);
+        }
+
+        if ($desc !== '') {
+            $cfg['desc'] = $this->translate($desc);
+        }
+
+        return $cfg;
+    }
+
+    private function getSwitchCfg($name, $label = '', $desc = '')
+    {
+        $cfg = [
+            'type' => 'switch',
+            'col' => 3,
+            'name' => $name,
+            'is_bool' => true,
+            'values' => [
+                [
+                    'id' => 'active_on',
+                    'value' => true,
+                    'label' => $this->translate('Enabled')
+                ],
+                [
+                    'id' => 'active_off',
+                    'value' => false,
+                    'label' => $this->translate('Disabled')
+                ]
+            ]
+        ];
+
+        if ($label !== '') {
+            $cfg['label'] = $this->translate($label);
+        }
+
+        if ($desc !== '') {
+            $cfg['desc'] = $this->translate($desc);
+        }
+
+        return $cfg;
+    }
+
+    private function translate($string, $arr = [])
+    {
+        return $this->module->getTranslator()->trans($string, $arr, 'Modules.Importpalmira.Importpalmira');
     }
 }
