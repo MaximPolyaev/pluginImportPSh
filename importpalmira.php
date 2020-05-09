@@ -32,10 +32,8 @@ require_once _PS_MODULE_DIR_ . 'importpalmira/vendor/autoload.php';
 
 use MaximCode\ImportPalmira\ImportForm as ImportForm;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\VarDumper\VarDumper;
 
-
-class importpalmira extends Module
+class ImportPalmira extends Module
 {
     private $form;
     private $step;
@@ -87,13 +85,6 @@ class importpalmira extends Module
      */
     public function getContent()
     {
-//        /**
-//         * If values have been submitted in the form, process.
-//         */
-//        if ((bool)Tools::isSubmit('submitImportpalmiraModule')) {
-//            VarDumper::dump(Tools::getAllValues());
-//        }
-
         $output = $this->renderView();
 
         $this->context->controller->addJS($this->_path . 'views/js/back.js');
@@ -108,7 +99,7 @@ class importpalmira extends Module
             return;
         }
 
-        if(+$this->step === 0 || +$this->step === 1) {
+        if (+$this->step === 0 || +$this->step === 1) {
             $formView = $this->form->getView();
             $this->context->smarty->assign('form_view', $formView);
             return $this->display(__FILE__, 'forms.tpl');

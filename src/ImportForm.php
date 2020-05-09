@@ -1,18 +1,39 @@
 <?php
-
+/**
+ * 2007-2020 PrestaShop
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@prestashop.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+ * versions in the future. If you wish to customize PrestaShop for your
+ * needs please refer to http://www.prestashop.com for more information.
+ *
+ * @author    PrestaShop SA <contact@prestashop.com>
+ * @copyright 2007-2020 PrestaShop SA
+ * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *  International Registered Trademark & Property of PrestaShop SA
+ */
 
 namespace MaximCode\ImportPalmira;
-
 
 use PrestaShop\PrestaShop\Adapter\Entity\Configuration;
 use PrestaShop\PrestaShop\Adapter\Entity\HelperForm;
 use PrestaShop\PrestaShop\Adapter\Entity\Tools;
 use PrestaShop\PrestaShop\Core\Import\EntityField\Provider\ProductFieldsProvider;
 
-
 class ImportForm
 {
-    private const TRANS_DOMAIN = 'Modules.Importpalmira.Importpalmira';
+    const TRANS_DOMAIN = 'Modules.Importpalmira.Importpalmira';
 
     private $module;
     private $translator;
@@ -78,15 +99,15 @@ class ImportForm
     private function getCfgValues()
     {
         return [
-            'IMPORTPALMIRA_DELETE_PRODUCTS' => false, // удалить все товары перед импортом? : step 1
-            'IMPORTPALMIRA_CSV_SEPARATOR' => ';', // Разделитель колонк csv : step 1
-            'IMPORTPALMIRA_FORCE_NUMBERING' => false, // Обязательная ID нумерация : step 1
-            'IMPORTPALMIRA_REFERENCE_KEY' => 1, // Номер уникального ключа : step 1
-            'IMPORTPALMIRA_XML_SINGLE_NAME' => 'offer', // имя одной сущности продукта в xml файле : step 1
-            'IMPORTPALMIRA_FILE_IMPORT' => '', // имя файла импорта : step 1
-            'IMPORTPALMIRA_FILE_IMPORT_SAVE' => false, // сохранять файл импорта или нет : step 1
-            'IMPORTPALMIRA_NAME_CFG' => '', // имя конфигурации для сохранения : step 2
-            'IMPORTPALMIRA_NUM_SKIP_ROWS' => 1, // сколько пропустить линий? : step 2
+            'IMPORTPALMIRA_DELETE_PRODUCTS' => false,
+            'IMPORTPALMIRA_CSV_SEPARATOR' => ';',
+            'IMPORTPALMIRA_FORCE_NUMBERING' => false,
+            'IMPORTPALMIRA_REFERENCE_KEY' => 1,
+            'IMPORTPALMIRA_XML_SINGLE_NAME' => 'offer',
+            'IMPORTPALMIRA_FILE_IMPORT' => '',
+            'IMPORTPALMIRA_FILE_IMPORT_SAVE' => false,
+            'IMPORTPALMIRA_NAME_CFG' => '',
+            'IMPORTPALMIRA_NUM_SKIP_ROWS' => 1,
         ];
     }
 
@@ -95,6 +116,8 @@ class ImportForm
      */
     private function getCfgOneForm()
     {
+        $cfg = [];
+
         $cfg[] = ['form' => [
             'title' => $this->module->getTranslator()->trans('Select file to import', [], self::TRANS_DOMAIN),
             'input' => [
@@ -313,6 +336,8 @@ class ImportForm
                 ]
             ]
         ];
+
+        $cfg = [];
 
         $cfg[] = ['form' => [
             'title' => $this->module->getTranslator()->trans('Match your data', [], self::TRANS_DOMAIN),
