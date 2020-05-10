@@ -139,7 +139,7 @@ class ImportForm
                 [
                     'type' => 'history_files',
                     'label' => $this->translate('Choose file from history'),
-                    'name' => 'IMPORTPALMIRA_TEST',
+                    'name' => 'IMPORTPALMIRA_FILE_ID',
                     'col' => 6,
                     'btnlink' => $this->url . "&token=" . $this->token
                 ],
@@ -185,7 +185,7 @@ class ImportForm
                     'IMPORTPALMIRA_FORCE_NUMBERING',
                     'Force ALL ID numbers',
                     'If you enable this option, your imported items ID number will be used as-is. If you do
-                            not enable this option, the imported ID numbers will be ignored, and PrestaShop will 
+                            not enable this option, the imported ID numbers will be ignored, and PrestaShop will
                             instead create auto-incremented ID numbers for all the imported items.'
                 ),
                 [

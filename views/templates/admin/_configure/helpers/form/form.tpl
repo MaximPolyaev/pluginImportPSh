@@ -54,9 +54,9 @@
   {if isset($table_bk) && $table_bk == $table}{capture name='table_count'}{counter name='table_count'}{/capture}{/if}
   {assign var='table_bk' value=$table scope='root'}
   <form id="{if isset($fields.form.form.id_form)}{$fields.form.form.id_form|escape:'html':'UTF-8'}{else}{if $table == null}configuration_form{else}{$table}_form{/if}{if isset($smarty.capture.table_count) && $smarty.capture.table_count}_{$smarty.capture.table_count|intval}{/if}{/if}"
-          class="defaultForm form-horizontal{if isset($name_controller) && $name_controller} {$name_controller}{/if}"{if isset($current) && $current}
-          action="{$current|escape:'html':'UTF-8'}{if isset($token) && $token}&amp;token={$token|escape:'html':'UTF-8'}{/if}"{/if}
-          method="post" enctype="multipart/form-data"{if isset($style)} style="{$style}"{/if} novalidate>
+        class="defaultForm form-horizontal{if isset($name_controller) && $name_controller} {$name_controller}{/if}"{if isset($current) && $current}
+  action="{$current|escape:'html':'UTF-8'}{if isset($token) && $token}&amp;token={$token|escape:'html':'UTF-8'}{/if}"{/if}
+        method="post" enctype="multipart/form-data"{if isset($style)} style="{$style}"{/if} novalidate>
     {if $form_id}
       <input type="hidden" name="{$identifUier}"
              id="{$identifier}{if isset($smarty.capture.identifier_count) && $smarty.capture.identifier_count}_{$smarty.capture.identifier_count|intval}{/if}"
@@ -100,7 +100,7 @@
                     <div class="form-group{if isset($input.form_group_class)} {$input.form_group_class}{/if}{if $input.type == 'hidden'} hide{/if}"{if $input.name == 'id_state'}
                       id="contains_states"{if !$contains_states} style="display:none;"{/if}{/if}{if $input.name == 'dni'}
                       id="dni_required"{if !$dni_required} style="display:none;"{/if}{/if}{if isset($tabs) && isset($input.tab)}
-                      data-tab-id="{$input.tab}"{/if}>
+                    data-tab-id="{$input.tab}"{/if}>
                       {if $input.type == 'hidden'}
                         <input type="hidden" name="{$input.name}" id="{$input.name}"
                                value="{$fields_value[$input.name]|escape:'html':'UTF-8'}"/>
@@ -109,7 +109,8 @@
                           {if isset($input.label)}
                             <label class="control-label col-lg-3{if isset($input.required) && $input.required && $input.type != 'radio'} required{/if}">
                               {if isset($input.hint)}
-                                <span class="label-tooltip" data-toggle="tooltip" data-html="true" title="{if is_array($input.hint)}
+                              <span class="label-tooltip" data-toggle="tooltip" data-html="true"
+                                    title="{if is_array($input.hint)}
                                   {foreach $input.hint as $hint}
                                     {if is_array($hint)}
                                       {$hint.text|escape:'html':'UTF-8'}
@@ -122,7 +123,7 @@
                                 {/if}">
 										          {/if}
                                 {$input.label}
-                              {if isset($input.hint)}
+                                {if isset($input.hint)}
                                 </span>
                               {/if}
                             </label>
@@ -217,27 +218,30 @@
                                            value="{$value.value}"{if $fields_value[$input.name] == $value.value}
                                            checked="checked"{/if}{if (isset($input.disabled) && $input.disabled) or (isset($value.disabled) && $value.disabled)}
                                            disabled="disabled"{/if}/>
-                                    {strip}
-                                      <label {if $value.value == 1} for="{$input.name}_on"{else} for="{$input.name}_off"{/if}>
+
+{strip}
+                                    <label {if $value.value == 1} for="{$input.name}_on"{else} for="{$input.name}_off"{/if}>
                                         {if $value.value == 1}
                                           {l s='Yes' d='Admin.Global'}
                                         {else}
                                           {l s='No' d='Admin.Global'}
                                         {/if}
                                       </label>
-                                    {/strip}
+                                  {/strip}
                                   {/foreach}
 										              <a class="slide-button btn"></a>
 									              </span>
                               {elseif $input.type == 'file'}
                                 <div class="form-group">
                                   <div class="col-sm-6">
-                                    <input id="{$input.name}" type="file" name="{$input.name}" accept=".xml, .csv" class="hide" />
+                                    <input id="{$input.name}" type="file" name="{$input.name}" accept=".xml, .csv"
+                                           class="hide"/>
                                     <div class="dummyfile input-group">
                                       <span class="input-group-addon"><i class="icon-file"></i></span>
-                                      <input id="{$input.name}-name" type="text" name="{$input.name}" readonly />
+                                      <input id="{$input.name}-name" type="text" name="{$input.name}" readonly/>
                                       <span class="input-group-btn">
-                                        <button id="{$input.name}-selectbutton" type="button" name="submitAddAttachments" class="btn btn-default">
+                                        <button id="{$input.name}-selectbutton" type="button"
+                                                name="submitAddAttachments" class="btn btn-default">
                                           <i class="icon-folder-open"></i> {l s='Add files'}
                                         </button>
                                       </span>
@@ -245,89 +249,100 @@
                                   </div>
                                 </div>
                                 <script type="text/javascript">
-                                  $(document).ready(function(){
-                                    $('#{$input.name}-selectbutton').click(function(e) {
-                                      $('#{$input.name}').trigger('click');
-                                    });
+                                  $(document)
+                                          .ready(function () {
+                                            $('#{$input.name}-selectbutton')
+                                                    .click(function (e) {
+                                                      $('#{$input.name}')
+                                                              .trigger('click');
+                                                    });
 
-                                    $('#{$input.name}-name').click(function(e) {
-                                      $('#{$input.name}').trigger('click');
-                                    });
+                                            $('#{$input.name}-name')
+                                                    .click(function (e) {
+                                                      $('#{$input.name}')
+                                                              .trigger('click');
+                                                    });
 
-                                    $('#{$input.name}-name').on('dragenter', function(e) {
-                                      e.stopPropagation();
-                                      e.preventDefault();
-                                    });
+                                            $('#{$input.name}-name')
+                                                    .on('dragenter', function (e) {
+                                                      e.stopPropagation();
+                                                      e.preventDefault();
+                                                    });
 
-                                    $('#{$input.name}-name').on('dragover', function(e) {
-                                      e.stopPropagation();
-                                      e.preventDefault();
-                                    });
+                                            $('#{$input.name}-name')
+                                                    .on('dragover', function (e) {
+                                                      e.stopPropagation();
+                                                      e.preventDefault();
+                                                    });
 
-                                    $('#{$input.name}-name').on('drop', function(e) {
-                                      e.preventDefault();
-                                      var files = e.originalEvent.dataTransfer.files;
-                                      $('#{$input.name}')[0].files = files;
-                                      $(this).val(files[0].name);
-                                    });
+                                            $('#{$input.name}-name')
+                                                    .on('drop', function (e) {
+                                                      e.preventDefault();
+                                                      var files = e.originalEvent.dataTransfer.files;
+                                                      $('#{$input.name}')[0].files = files;
+                                                      $(this)
+                                                              .val(files[0].name);
+                                                    });
 
-                                    $('#{$input.name}').change(function(e) {
-                                      if ($(this)[0].files !== undefined)
-                                      {
-                                        var files = $(this)[0].files;
-                                        var name  = '';
+                                            $('#{$input.name}')
+                                                    .change(function (e) {
+                                                      if ($(this)[0].files !== undefined) {
+                                                        var files = $(this)[0].files;
+                                                        var name = '';
 
-                                        $.each(files, function(index, value) {
-                                          name += value.name+', ';
-                                        });
+                                                        $.each(files, function (index, value) {
+                                                          name += value.name + ', ';
+                                                        });
 
-                                        $('#{$input.name}-name').val(name.slice(0, -2));
-                                      }
-                                      else // Internet Explorer 9 Compatibility
-                                      {
-                                        var name = $(this).val().split(/[\\/]/);
-                                        $('#{$input.name}-name').val(name[name.length-1]);
-                                      }
-                                    });
+                                                        $('#{$input.name}-name')
+                                                                .val(name.slice(0, -2));
+                                                      } else // Internet Explorer 9 Compatibility
+                                                      {
+                                                        var name = $(this)
+                                                                .val()
+                                                                .split(/[\\/]/);
+                                                        $('#{$input.name}-name')
+                                                                .val(name[name.length - 1]);
+                                                      }
+                                                    });
 
-                                  });
+                                          });
                                 </script>
-{*                                {$input.file}*}
+                                {*                                {$input.file}*}
                               {elseif $input.type == 'history_files'}
-                                <table class="table">
+                                <table class="table" id="history_files">
                                   <tbody>
-                                  <tr>
-                                    <td>filename 1</td>
-                                    <td style="width: 40px">
-                                      <button type="button"
-                                              class="btn btn-primary">{l s='Use' d='Admin.Actions'}</button>
-                                    </td>
-                                    <td style="width: 40px"><a href="{$input.btnlink}" type="button"
-                                                               class="btn btn-danger">{l s='Delete' d='Admin.Actions'}</a>
-                                    </td>
-                                  </tr>
-                                  <tr>
-                                    <td>filename 2</td>
-                                    <td style="width: 40px">
-                                      <button type="button"
-                                              class="btn btn-primary">{l s='Use' d='Admin.Actions'}</button>
-                                    </td>
-                                    <td style="width: 40px"><a href="{$input.btnlink}" type="button"
-                                                               class="btn btn-danger">{l s='Delete' d='Admin.Actions'}</a>
-                                    </td>
-                                  </tr>
-                                  <tr>
-                                    <td>filename 3</td>
-                                    <td style="width: 40px">
-                                      <button type="button"
-                                              class="btn btn-primary">{l s='Use' d='Admin.Actions'}</button>
-                                    </td>
-                                    <td style="width: 40px"><a href="{$input.btnlink}" type="button"
-                                                               class="btn btn-danger">{l s='Delete' d='Admin.Actions'}</a>
-                                    </td>
-                                  </tr>
+                                  {for $id=1 to 4}
+                                    <tr>
+                                      <td id="{$input.name}_{$id}">{$input.name}_{$id}_file_name</td>
+                                      <td style="width: 40px">
+                                        <button type="button" data-id="{$input.name}_{$id}"
+                                                class="btn btn-primary btn-use-file">
+                                          {l s='Use' d='Admin.Actions'}
+                                        </button>
+                                      </td>
+                                      <td style="width: 40px">
+                                        <a href="{$input.btnlink}" type="button" class="btn btn-danger">
+                                          {l s='Delete' d='Admin.Actions'}
+                                        </a>
+                                      </td>
+                                    </tr>
+                                  {/for}
                                   </tbody>
                                 </table>
+                                <script type="text/javascript">
+                                  $(document)
+                                          .ready(function () {
+                                            $('#history_files .btn-use-file')
+                                                    .click(function (e) {
+                                                      $('#IMPORTPALMIRA_FILE_IMPORT-name')
+                                                              .val($('#' + $(e.target)
+                                                                      .data('id'))
+                                                                      .text());
+                                                    });
+
+                                          });
+                                </script>
                               {elseif $input.type == 'text_save'}
                                 <div class="col-sm-10">
                                   <input type="text" name="{$input.name}" id="{$input.name}">
