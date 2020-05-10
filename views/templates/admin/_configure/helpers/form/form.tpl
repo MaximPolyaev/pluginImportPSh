@@ -230,7 +230,69 @@
 										              <a class="slide-button btn"></a>
 									              </span>
                               {elseif $input.type == 'file'}
-                                {$input.file}
+                                <div class="form-group">
+                                  <div class="col-sm-6">
+                                    <input id="{$input.name}" type="file" name="{$input.name}" accept=".xml, .csv" class="hide" />
+                                    <div class="dummyfile input-group">
+                                      <span class="input-group-addon"><i class="icon-file"></i></span>
+                                      <input id="{$input.name}-name" type="text" name="{$input.name}" readonly />
+                                      <span class="input-group-btn">
+                                        <button id="{$input.name}-selectbutton" type="button" name="submitAddAttachments" class="btn btn-default">
+                                          <i class="icon-folder-open"></i> {l s='Add files'}
+                                        </button>
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <script type="text/javascript">
+                                  $(document).ready(function(){
+                                    $('#{$input.name}-selectbutton').click(function(e) {
+                                      $('#{$input.name}').trigger('click');
+                                    });
+
+                                    $('#{$input.name}-name').click(function(e) {
+                                      $('#{$input.name}').trigger('click');
+                                    });
+
+                                    $('#{$input.name}-name').on('dragenter', function(e) {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                    });
+
+                                    $('#{$input.name}-name').on('dragover', function(e) {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                    });
+
+                                    $('#{$input.name}-name').on('drop', function(e) {
+                                      e.preventDefault();
+                                      var files = e.originalEvent.dataTransfer.files;
+                                      $('#{$input.name}')[0].files = files;
+                                      $(this).val(files[0].name);
+                                    });
+
+                                    $('#{$input.name}').change(function(e) {
+                                      if ($(this)[0].files !== undefined)
+                                      {
+                                        var files = $(this)[0].files;
+                                        var name  = '';
+
+                                        $.each(files, function(index, value) {
+                                          name += value.name+', ';
+                                        });
+
+                                        $('#{$input.name}-name').val(name.slice(0, -2));
+                                      }
+                                      else // Internet Explorer 9 Compatibility
+                                      {
+                                        var name = $(this).val().split(/[\\/]/);
+                                        $('#{$input.name}-name').val(name[name.length-1]);
+                                      }
+                                    });
+
+                                  });
+                                </script>
+{*                                {$input.file}*}
                               {elseif $input.type == 'history_files'}
                                 <table class="table">
                                   <tbody>
