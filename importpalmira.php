@@ -31,11 +31,13 @@ if (!defined('_PS_VERSION_')) {
 require_once _PS_MODULE_DIR_ . 'importpalmira/vendor/autoload.php';
 
 use MaximCode\ImportPalmira\ImportForm as ImportForm;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\VarDumper\VarDumper;
 
 class ImportPalmira extends Module
 {
+    const _IMPORT_FILES_DIR_ = _PS_MODULE_DIR_ . 'importpalmira/importfiles/';
     private $form;
     private $step;
     private $token;
@@ -103,10 +105,17 @@ class ImportPalmira extends Module
      */
     public function getContent()
     {
-        if ((bool)Tools::getValue('delete_file')) {
+        /**
+         * Delete file from history import files
+         */
+        if ((bool)Tools::getValue('delete_file') && (bool)($file_del = Tools::getValue('file_delete_name'))) {
+            $fs = new Filesystem();
+            VarDumper::dump($file_del);
+            if ($fs->exists( self::_IMPORT_FILES_DIR_ . $file_del)) {
+                $fs->remove(self::_IMPORT_FILES_DIR_ . $file_del);
+            }
 
-            VarDumper::Dump('delete_file');
-
+            unset($file_del);
         }
 
         /**
