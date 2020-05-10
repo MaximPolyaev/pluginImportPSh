@@ -322,7 +322,7 @@
                                         </button>
                                       </td>
                                       <td style="width: 40px">
-                                        <a href="{$input.btnlink}" type="button" class="btn btn-danger">
+                                        <a href="{$input.btnlink}&delete_file=1" type="button" class="btn btn-danger">
                                           {l s='Delete' d='Admin.Actions'}
                                         </a>
                                       </td>

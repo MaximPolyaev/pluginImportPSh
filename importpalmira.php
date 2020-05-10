@@ -104,7 +104,9 @@ class ImportPalmira extends Module
     public function getContent()
     {
         if ((bool)Tools::getValue('delete_file')) {
-            die;
+
+            VarDumper::Dump('delete_file');
+
         }
 
         /**

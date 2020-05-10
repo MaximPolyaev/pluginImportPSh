@@ -63,7 +63,6 @@ class ImportForm
         $this->url .= '&configure=' . $this->module->name;
         $this->url .= '&tab_module=' . $this->module->tab;
         $this->url .= '&module_name=' . $this->module->name;
-        $this->url .= '&step=' . ($this->step + 1);
     }
 
     /**
@@ -83,7 +82,8 @@ class ImportForm
 
         $helper->identifier = $this->identifier;
         $helper->submit_action = 'submitImportpalmiraModule';
-        $helper->currentIndex = $this->url;
+
+        $helper->currentIndex = $this->url . '&step=' . ($this->step + 1);;
 
         $helper->token = $this->token;
 
