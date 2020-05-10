@@ -28,6 +28,8 @@ namespace MaximCode\ImportPalmira;
 
 use PrestaShop\PrestaShop\Adapter\Entity\HelperForm;
 use PrestaShop\PrestaShop\Core\Import\EntityField\Provider\ProductFieldsProvider;
+use Symfony\Component\Finder\Finder;
+use Symfony\Component\VarDumper\VarDumper;
 
 class ImportForm
 {
@@ -123,6 +125,8 @@ class ImportForm
     {
         $cfg = [];
 
+        $import_files_name = $this->getImportFilesName();
+
         $cfg[] = ['form' => [
             'title' => $this->translate('Select file to import'),
             'input' => [
@@ -138,10 +142,11 @@ class ImportForm
                 ],
                 [
                     'type' => 'history_files',
-                    'label' => $this->translate('Choose file from history'),
+                    'label' => !empty($import_files_name) ? $this->translate('Choose file from history') : '',
                     'name' => 'IMPORTPALMIRA_FILE_ID',
                     'col' => 6,
-                    'btnlink' => $this->url . "&token=" . $this->token
+                    'btnlink' => $this->url . "&token=" . $this->token,
+                    'files_name' =>  $import_files_name
                 ],
                 $this->getSwitchCfg(
                     'IMPORTPALMIRA_FILE_IMPORT_SAVE',
@@ -368,5 +373,31 @@ class ImportForm
     private function translate($string, $arr = [])
     {
         return $this->module->getTranslator()->trans($string, $arr, 'Modules.Importpalmira.Importpalmira');
+    }
+
+
+    /**
+     * Get array files name from "importfiles" folder
+     * @return array
+     */
+    private function getImportFilesName() : array
+    {
+        $import_dir = \ImportPalmira::_IMPORT_FILES_DIR_;
+        $finder = new Finder();
+        $finder->files()->in($import_dir);
+
+        $files_names = [];
+
+        if ($finder->hasResults()) {
+            foreach ($finder as $file) {
+                $file_ext = $file->getExtension();
+
+                if($file_ext === 'csv' || $file_ext === 'xml') {
+                    $files_names[] = $file->getFilename();
+                }
+            }
+        }
+
+        return $files_names;
     }
 }

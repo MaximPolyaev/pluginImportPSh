@@ -110,7 +110,6 @@ class ImportPalmira extends Module
          */
         if ((bool)Tools::getValue('delete_file') && (bool)($file_del = Tools::getValue('file_delete_name'))) {
             $fs = new Filesystem();
-            VarDumper::dump($file_del);
             if ($fs->exists( self::_IMPORT_FILES_DIR_ . $file_del)) {
                 $fs->remove(self::_IMPORT_FILES_DIR_ . $file_del);
             }

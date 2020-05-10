@@ -310,39 +310,41 @@
                                 </script>
                                 {*                                {$input.file}*}
                               {elseif $input.type == 'history_files'}
-                                <table class="table" id="history_files">
-                                  <tbody>
-                                  {for $id=1 to 4}
-                                    <tr>
-                                      <td id="{$input.name}_{$id}">{$input.name}_{$id}_file_name</td>
-                                      <td style="width: 40px">
-                                        <button type="button" data-id="{$input.name}_{$id}"
-                                                class="btn btn-primary btn-use-file">
-                                          {l s='Use' d='Admin.Actions'}
-                                        </button>
-                                      </td>
-                                      <td style="width: 40px">
-                                        <a href="{$input.btnlink}&file_delete_name=test.csv&delete_file=1" type="button" class="btn btn-danger">
-                                          {l s='Delete' d='Admin.Actions'}
-                                        </a>
-                                      </td>
-                                    </tr>
-                                  {/for}
-                                  </tbody>
-                                </table>
-                                <script type="text/javascript">
-                                  $(document)
-                                          .ready(function () {
-                                            $('#history_files .btn-use-file')
-                                                    .click(function (e) {
-                                                      $('#IMPORTPALMIRA_FILE_IMPORT-name')
-                                                              .val($('#' + $(e.target)
-                                                                      .data('id'))
-                                                                      .text());
-                                                    });
+                                {if isset($input.files_name) && !empty($input.files_name)}
+                                  <table class="table" id="history_files">
+                                    <tbody>
+                                    {foreach from=$input.files_name key=$key item=$name}
+                                      <tr>
+                                        <td id="{$input.name}_{$key}">{$name}</td>
+                                        <td style="width: 40px">
+                                          <button type="button" data-id="{$input.name}_{$key}"
+                                                  class="btn btn-primary btn-use-file">
+                                            {l s='Use' d='Admin.Actions'}
+                                          </button>
+                                        </td>
+                                        <td style="width: 40px">
+                                          <a href="{$input.btnlink}&file_delete_name={$name}&delete_file=1" type="button" class="btn btn-danger">
+                                            {l s='Delete' d='Admin.Actions'}
+                                          </a>
+                                        </td>
+                                      </tr>
+                                    {/foreach}
+                                    </tbody>
+                                  </table>
+                                  <script type="text/javascript">
+                                    $(document)
+                                            .ready(function () {
+                                              $('#history_files .btn-use-file')
+                                                      .click(function (e) {
+                                                        $('#IMPORTPALMIRA_FILE_IMPORT-name')
+                                                                .val($('#' + $(e.target)
+                                                                        .data('id'))
+                                                                        .text());
+                                                      });
 
-                                          });
-                                </script>
+                                            });
+                                  </script>
+                                {/if}
                               {elseif $input.type == 'text_save'}
                                 <div class="col-sm-10">
                                   <input type="text" name="{$input.name}" id="{$input.name}">
