@@ -50,7 +50,7 @@ class Flash
     }
 
     public function get($key) {
-        $value = $_SESSION['IMPORT_PALMIRA']['FLASH'][$key];
+        $value = $_SESSION['IMPORT_PALMIRA']['FLASH'][$key] ?? null;
         unset($_SESSION['IMPORT_PALMIRA']['FLASH'][$key]);
         return $value;
     }

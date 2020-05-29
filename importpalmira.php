@@ -120,10 +120,16 @@ class ImportPalmira extends Module
 
         switch (+$this->step) {
             case 0:
+                $this->renderStepOne();
                 break;
             case 1:
-                $fileUploader = new FileUploader();
+                $fileUploader = new FileUploader($this);
                 $file_path = $fileUploader->getPath();
+                if ($file_path === 'error') {
+                    $this->flash->add('file_load_errors', $fileUploader->getErrors());
+                    $this->flash->add('step_one_is_error', 1);
+                    Tools::redirectAdmin($this->url);
+                }
                 break;
             case 2:
                 break;
@@ -137,6 +143,17 @@ class ImportPalmira extends Module
         $this->context->controller->addCSS($this->_path . 'views/css/back.css');
 
         return $output;
+    }
+
+    public function renderStepOne()
+    {
+        $isError = $this->flash->get('step_one_is_error');
+        if ($isError) {
+            $errors = $this->flash->get('file_load_errors');
+
+            $this->context->smarty->assign('step_one_is_error', true);
+            $this->context->smarty->assign('step_one_errors', $errors);
+        }
     }
 
     public function renderView()

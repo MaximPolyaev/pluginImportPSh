@@ -30,9 +30,12 @@
     <div class="mp-step active">
       <div class="mp-step-circle"><span>1</span></div>
       <div class="mp-step-title">{l s='Upload your file' d='Modules.Importpalmira.Step'}</div>
-      <div class="mp-step-optional mp-error-optional">{l s='Error' d='Modules.Importpalmira.Step'}<i
-                class="material-icons">error_outline</i>
-      </div>
+      {if isset($step_one_is_error)}
+        <div class="mp-step-optional mp-error-optional">
+          {l s='Error' d='Modules.Importpalmira.Step'}
+          <i class="material-icons">error_outline</i>
+        </div>
+      {/if}
       <div class="mp-step-bar-left"></div>
       <div class="mp-step-bar-right"></div>
     </div>
@@ -53,6 +56,17 @@
   </div>
   <hr>
   <div>
+    {if isset($step_one_errors)}
+      {foreach from=$step_one_errors item=error}
+        <div class="alert alert-danger" role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <p class="alert-text">{$error}</p>
+        </div>
+      {/foreach}
+    {/if}
+
     {$form_view}
   </div>
 </div>

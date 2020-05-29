@@ -6,6 +6,7 @@ namespace MaximCode\ImportPalmira;
 
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\VarDumper\VarDumper;
 
 
 class FileUploader
@@ -13,6 +14,7 @@ class FileUploader
     const _IMPORT_FILES_DIR_ = _PS_MODULE_DIR_ . 'importpalmira/importfiles/';
 
     private $fs;
+    private $module;
     private $file_data;
     private $file_name;
     private $file_ext;
@@ -22,7 +24,7 @@ class FileUploader
     private $errors = [];
     private $success = [];
 
-    public function __construct()
+    public function __construct($module)
     {
         /**
          * If values have been submitted in the form, process.
@@ -34,6 +36,7 @@ class FileUploader
                 (bool)\Tools::getValue('IMPORTPALMIRA_FILE_IMPORT')
             ) {
                 $this->fs = new Filesystem();
+                $this->module = $module;
                 $this->file_data = $_FILES['IMPORTPALMIRA_FILE_IMPORT'];
                 $this->file_name = \Tools::getValue('IMPORTPALMIRA_FILE_IMPORT');
                 $this->file_tmp_name = $this->file_data['tmp_name'];
@@ -63,6 +66,7 @@ class FileUploader
     {
         if ($this->isHistory()) {
             $this->file_path = self::_IMPORT_FILES_DIR_ . $this->file_name;
+            return;
         } else if ($this->isExists() || !$this->extIsTrue()) {
             return;
         }
@@ -74,7 +78,7 @@ class FileUploader
 
             if ($this->fs->exists(self::_IMPORT_FILES_DIR_ . $this->file_name)) {
                 $this->file_path = self::_IMPORT_FILES_DIR_ . $this->file_name;
-                $this->success[] = 'File has been successfully uploaded';
+                $this->success[] = $this->module->getTranslator()->trans('File has been successfully uploaded', [], 'Modules.Importpalmira.Importpalmira');
             }
         }
     }
@@ -91,7 +95,7 @@ class FileUploader
         if ($this->fs->exists(self::_IMPORT_FILES_DIR_ . $this->file_name) && $this->file_size) {
             $exist_file = new File(self::_IMPORT_FILES_DIR_ . $this->file_name);
             if ($exist_file->getSize() === $this->file_size) {
-                $this->errors[] = 'Upload file error: file is exist';
+                $this->errors[] = $this->module->getTranslator()->trans('Upload file error: file is exist', [], 'Modules.Importpalmira.Importpalmira');
                 return true;
             }
         }
@@ -104,8 +108,7 @@ class FileUploader
         if ($this->file_ext === 'csv' || $this->file_ext === 'xml') {
             return true;
         }
-
-        $errors[] = "This file type ($this->file_ext) is not supported";
+        $this->errors[] = $this->module->getTranslator()->trans('This file type (%s) is not supported', [$this->file_ext], 'Modules.Importpalmira.Importpalmira');
         return false;
     }
 
