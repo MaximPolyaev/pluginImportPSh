@@ -340,6 +340,7 @@
                                                                 .val($('#' + $(e.target)
                                                                         .data('id'))
                                                                         .text());
+                                                        $('#IMPORTPALMIRA_FILE_IMPORT').val('');
                                                       });
 
                                             });

@@ -30,7 +30,8 @@ if (!defined('_PS_VERSION_')) {
 
 require_once _PS_MODULE_DIR_ . 'importpalmira/vendor/autoload.php';
 
-use MaximCode\ImportPalmira\ImportForm as ImportForm;
+use MaximCode\ImportPalmira\FileUploader;
+use MaximCode\ImportPalmira\ImportForm;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -116,45 +117,17 @@ class ImportPalmira extends Module
             Tools::redirectAdmin($this->url);
         }
 
-        /**
-         * If values have been submitted in the form, process.
-         * @todo correct select import file from history
-         */
-        if ((bool)Tools::isSubmit('submitImportpalmiraModule')) {
-            if (isset($_FILES['IMPORTPALMIRA_FILE_IMPORT']) &&
-                !empty($_FILES['IMPORTPALMIRA_FILE_IMPORT']) &&
-                (bool)Tools::getValue('IMPORTPALMIRA_FILE_IMPORT')
-            ) {
-                $errors = [];
-                $file = $_FILES['IMPORTPALMIRA_FILE_IMPORT'];
-                $file_name = Tools::getValue('IMPORTPALMIRA_FILE_IMPORT');
-                $file_ext = $this->getFileExt($file_name);
-                $file_tmp = $file['tmp_name'];
-
-                $fs = new Filesystem();
-                if ($fs->exists(self::_IMPORT_FILES_DIR_ . $file_name)) {
-                    $exist_file = new File(self::_IMPORT_FILES_DIR_ . $file_name);
-                    if($exist_file->getSize() === $file['size']) {
-                        $errors[] = 'Upload file error: file is exist';
-                    }
-                }
-
-                if ($file_ext !== 'csv' && $file_ext !== 'xml') {
-                    $errors[] = "This file type (${file_ext}) is not supported";
-                }
-
-                if(empty($errors)) {
-                    $current_file = new File($file_tmp);
-                    $file_name = date("d-m-y-His-") . $file_name;
-                    $current_file->move(self::_IMPORT_FILES_DIR_, $file_name);
-
-                    if ($fs->exists(self::_IMPORT_FILES_DIR_ . $file_name)) {
-                        VarDumper::dump('File has been successfully uploaded');
-                    }
-                } else {
-                    VarDumper::dump($errors);
-                }
-            }
+        switch (+$this->step) {
+            case 0:
+                break;
+            case 1:
+                $fileUploader = new FileUploader();
+                $file_path = $fileUploader->getPath();
+                break;
+            case 2:
+                break;
+            default:
+                die;
         }
 
         $output = $this->renderView();
@@ -180,17 +153,11 @@ class ImportPalmira extends Module
             return $this->display(__FILE__, 'final.tpl');
         }
 
-        return new RedirectResponse($this->url .  '&token=' . $this->token . '&step=0');
+        return new RedirectResponse($this->url . '&token=' . $this->token . '&step=0');
     }
 
     public function isUsingNewTranslationSystem()
     {
         return true;
-    }
-
-    private function getFileExt($file_name) {
-        $file_ext = explode('.', $file_name);
-        $file_ext = strtolower(end($file_ext));
-        return $file_ext;
     }
 }
