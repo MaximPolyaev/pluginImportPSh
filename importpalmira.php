@@ -31,9 +31,8 @@ if (!defined('_PS_VERSION_')) {
 require_once _PS_MODULE_DIR_ . 'importpalmira/vendor/autoload.php';
 
 use MaximCode\ImportPalmira\FileUploader;
+use MaximCode\ImportPalmira\Flash;
 use MaximCode\ImportPalmira\ImportForm;
-use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\VarDumper\VarDumper;
 
@@ -44,6 +43,7 @@ class ImportPalmira extends Module
     private $step;
     private $token;
     private $url;
+    private $flash;
 
     public function __construct()
     {
@@ -81,6 +81,7 @@ class ImportPalmira extends Module
         $this->url .= '&tab_module=' . $this->tab;
         $this->url .= '&module_name=' . $this->name;
 
+        $this->flash = Flash::getInstance();
 
         $this->step = Tools::getValue('step') ? Tools::getValue('step') : 0;
         $this->form = new ImportForm($this, $this->table, $this->context, $this->identifier, $this->step, $this->token);
