@@ -172,6 +172,7 @@ class ImportPalmira extends Module
             return;
         }
 
+        $this->context->smarty->assign('import_step', $this->step);
         if (+$this->step === 0 || +$this->step === 1) {
             $formView = $this->form->getView();
             $this->context->smarty->assign('form_view', $formView);
