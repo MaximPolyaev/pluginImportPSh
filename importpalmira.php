@@ -112,11 +112,7 @@ class ImportPalmira extends Module
          * Delete file from history import files
          */
         if ((bool)Tools::getValue('delete_file_import') && (bool)($file_del = Tools::getValue('file_import_delete_name'))) {
-            $fs = new Filesystem();
-            if ($fs->exists( self::_IMPORT_FILES_DIR_ . $file_del)) {
-                $fs->remove(self::_IMPORT_FILES_DIR_ . $file_del);
-            }
-
+            Tools::deleteFile(self::_IMPORT_FILES_DIR_ . $file_del);
             Tools::redirectAdmin($this->url);
         }
 
