@@ -56,6 +56,9 @@
   </div>
   <hr>
   <div>
+    <div>
+      <button id="devbtn">dev-btn</button>
+    </div>
     {if isset($step_one_errors)}
       {foreach from=$step_one_errors item=error}
         <div class="alert alert-danger" role="alert">

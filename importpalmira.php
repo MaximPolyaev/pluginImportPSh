@@ -123,19 +123,7 @@ class ImportPalmira extends Module
                 $this->renderStepOne();
                 break;
             case 1:
-                $fileUploader = new FileUploader($this);
-                $file_path = $fileUploader->getPath();
-                if ($file_path === 'error') {
-                    $this->flash->add('file_load_errors', $fileUploader->getErrors());
-                    $this->flash->add('step_one_is_error', 1);
-                    Tools::redirectAdmin($this->url);
-                }
-                $file_name = $fileUploader->getFileName();
-                $this->context->smarty->assign('import_file_name', $file_name);
-                $this->context->smarty->assign('file_success_msg', $fileUploader->getSuccess());
-
-                VarDumper::dump($fileUploader->getSuccess());
-
+                $this->renderStepTwo();
                 break;
             case 2:
                 break;
@@ -160,6 +148,20 @@ class ImportPalmira extends Module
             $this->context->smarty->assign('step_one_is_error', true);
             $this->context->smarty->assign('step_one_errors', $errors);
         }
+    }
+
+    public function renderStepTwo()
+    {
+        $fileUploader = new FileUploader($this);
+        $file_path = $fileUploader->getPath();
+        if ($file_path === 'error') {
+            $this->flash->add('file_load_errors', $fileUploader->getErrors());
+            $this->flash->add('step_one_is_error', 1);
+            Tools::redirectAdmin($this->url);
+        }
+        $file_name = $fileUploader->getFileName();
+        $this->context->smarty->assign('import_file_name', $file_name);
+        $this->context->smarty->assign('file_success_msg', $fileUploader->getSuccess());
     }
 
     public function renderView()
