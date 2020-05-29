@@ -145,6 +145,7 @@ class ImportPalmira extends Module
 
                 if(empty($errors)) {
                     $current_file = new File($file_tmp);
+                    $file_name = date("d-m-y-His-") . $file_name;
                     $current_file->move(self::_IMPORT_FILES_DIR_, $file_name);
 
                     if ($fs->exists(self::_IMPORT_FILES_DIR_ . $file_name)) {
