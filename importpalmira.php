@@ -72,14 +72,16 @@ class ImportPalmira extends Module
 
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
 
+        $this->token = Tools::getAdminTokenLite('AdminModules');
+
         $this->url = $this->context->link->getAdminLink('AdminModules', false);
+        $this->url .= '&token=' . $this->token;
         $this->url .= '&configure=' . $this->name;
         $this->url .= '&tab_module=' . $this->tab;
         $this->url .= '&module_name=' . $this->name;
 
 
         $this->step = Tools::getValue('step') ? Tools::getValue('step') : 0;
-        $this->token = Tools::getAdminTokenLite('AdminModules');
         $this->form = new ImportForm($this, $this->table, $this->context, $this->identifier, $this->step, $this->token);
     }
 
@@ -114,8 +116,8 @@ class ImportPalmira extends Module
             if ($fs->exists( self::_IMPORT_FILES_DIR_ . $file_del)) {
                 $fs->remove(self::_IMPORT_FILES_DIR_ . $file_del);
             }
+            Tools::redirectAdmin($this->url);
 
-            unset($file_del);
         }
 
         /**
