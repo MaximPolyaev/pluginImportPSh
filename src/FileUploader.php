@@ -62,6 +62,10 @@ class FileUploader
         return $this->errors;
     }
 
+    public function getFileName() {
+        return $this->file_name;
+    }
+
     private function upload()
     {
         if ($this->isHistory()) {

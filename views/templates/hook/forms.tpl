@@ -67,6 +67,25 @@
       {/foreach}
     {/if}
 
+    {if isset($file_success_msg)}
+      {foreach from=$file_success_msg item=msg}
+        <div class="alert alert-success" role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <p class="alert-text">{$msg}</p>
+        </div>
+      {/foreach}
+    {/if}
+    {if isset($import_file_name)}
+      <div class="alert alert-success" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <p class="alert-text">{l s='Select file import: ' d='Modules.Importpalmira.Step'} {$import_file_name}</p>
+      </div>
+    {/if}
+
     {$form_view}
   </div>
 </div>

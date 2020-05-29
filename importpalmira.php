@@ -130,6 +130,12 @@ class ImportPalmira extends Module
                     $this->flash->add('step_one_is_error', 1);
                     Tools::redirectAdmin($this->url);
                 }
+                $file_name = $fileUploader->getFileName();
+                $this->context->smarty->assign('import_file_name', $file_name);
+                $this->context->smarty->assign('file_success_msg', $fileUploader->getSuccess());
+
+                VarDumper::dump($fileUploader->getSuccess());
+
                 break;
             case 2:
                 break;
