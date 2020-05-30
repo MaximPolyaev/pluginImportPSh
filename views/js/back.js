@@ -35,6 +35,7 @@ window.onload = function () {
       type: "POST",
       headers: { "cache-control": "no-cache" },
       url : 'http://import.loc/modules/importpalmira/ajax.php',
+      // url : 'http://import.loc/ru/module/importpalmira/task',
       // dataType: 'json',
       data: {
         // token : 'cb1231baa818f2bc7d15cbb7827a0724'
