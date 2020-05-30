@@ -55,7 +55,7 @@
     </div>
   </div>
   <hr>
-  <div>
+  <div id="importpalmira_view">
     <div>
       <button id="devbtn">dev-btn</button>
     </div>

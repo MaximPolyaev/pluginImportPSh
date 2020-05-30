@@ -115,6 +115,7 @@ class ImportForm
             'IMPORTPALMIRA_FILE_IMPORT_SAVE' => false,
             'IMPORTPALMIRA_NAME_CFG' => '',
             'IMPORTPALMIRA_NUM_SKIP_ROWS' => 1,
+            'IMPORTPALMIRA_IMPORT_FILE_PATH' => $this->module->import_file_path ?? 'error'
         ];
     }
 
@@ -280,6 +281,10 @@ class ImportForm
                 'Please match each column of your source file to one of the destination columns.'
             ),
             'input' => [
+                [
+                    'type' => 'hidden',
+                    'name' => 'IMPORTPALMIRA_IMPORT_FILE_PATH'
+                ],
                 [
                     'type' => 'text_save',
                     'label' => $this->translate('Save your data matching configuration'),

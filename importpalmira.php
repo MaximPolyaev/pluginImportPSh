@@ -44,6 +44,7 @@ class ImportPalmira extends Module
     private $token;
     private $url;
     private $flash;
+    public $import_file_path;
 
     public function __construct()
     {
@@ -52,7 +53,6 @@ class ImportPalmira extends Module
         $this->version = '1.0.0';
         $this->author = 'Maxim Polyaeiv';
         $this->need_instance = 1;
-
         /**
          * Set $this->bootstrap to true if your module is compliant with bootstrap (PrestaShop 1.6)
          */
@@ -72,19 +72,6 @@ class ImportPalmira extends Module
         );
 
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
-
-        $this->token = Tools::getAdminTokenLite('AdminModules');
-
-        $this->url = $this->context->link->getAdminLink('AdminModules', false);
-        $this->url .= '&token=' . $this->token;
-        $this->url .= '&configure=' . $this->name;
-        $this->url .= '&tab_module=' . $this->tab;
-        $this->url .= '&module_name=' . $this->name;
-
-        $this->flash = Flash::getInstance();
-
-        $this->step = Tools::getValue('step') ? Tools::getValue('step') : 0;
-        $this->form = new ImportForm($this, $this->table, $this->context, $this->identifier, $this->step, $this->token);
     }
 
     /**
@@ -110,6 +97,19 @@ class ImportPalmira extends Module
      */
     public function getContent()
     {
+        $this->token = Tools::getAdminTokenLite('AdminModules');
+
+        $this->url = $this->context->link->getAdminLink('AdminModules', false);
+        $this->url .= '&token=' . $this->token;
+        $this->url .= '&configure=' . $this->name;
+        $this->url .= '&tab_module=' . $this->tab;
+        $this->url .= '&module_name=' . $this->name;
+
+        $this->flash = Flash::getInstance();
+
+        $this->step = Tools::getValue('step') ? Tools::getValue('step') : 0;
+        $this->form = new ImportForm($this, $this->table, $this->context, $this->identifier, $this->step, $this->token);
+
         /**
          * Delete file from history import files
          */
@@ -126,6 +126,7 @@ class ImportPalmira extends Module
                 $this->renderStepTwo();
                 break;
             case 2:
+                $this->renderStepThree();
                 break;
             default:
                 die;
@@ -153,9 +154,14 @@ class ImportPalmira extends Module
     public function renderStepTwo()
     {
         $fileUploader = new FileUploader($this);
-        $file_path = $fileUploader->getPath();
-        if ($file_path === 'error') {
-            $this->flash->add('file_load_errors', $fileUploader->getErrors());
+        $this->import_file_path = $fileUploader->getPath();
+        if ($this->import_file_path === 'error') {
+            $errors = $fileUploader->getErrors();
+            if(empty($errors)) {
+                $errors[] = 'Возможно вы забыли загрузить файл';
+            }
+
+            $this->flash->add('file_load_errors', $errors);
             $this->flash->add('step_one_is_error', 1);
             Tools::redirectAdmin($this->url);
         }
@@ -164,11 +170,21 @@ class ImportPalmira extends Module
         $this->context->smarty->assign('file_success_msg', $fileUploader->getSuccess());
     }
 
+    public function renderStepThree() {
+        VarDumper::dump(Tools::getAllValues());
+    }
+
     public function renderView()
     {
         if (Tools::getValue('controller') != 'AdminModules' && Tools::getValue('configure') != $this->name) {
             return;
         }
+        Media::addJsDef([
+            'importpalmira_ajax' => $this->context->link->getAdminLink('AdminImportpalmira'),
+            'importpalmira_step' => $this->step,
+            'importpalmira_module_url' => $this->url
+        ]);
+
 
         $this->context->smarty->assign('import_step', $this->step);
         if (+$this->step === 0 || +$this->step === 1) {

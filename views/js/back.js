@@ -25,38 +25,32 @@
  * Don't forget to prefix your containers with your own identifier
  * to avoid any conflicts with others containers.
  */
-console.log('module is work!');
-window.onload = function () {
-  const btn = document.querySelector('#devbtn');
-  btn.addEventListener('click', () => {
-    const url = window.location.href;
-    console.log(url);
-    jQuery.ajax({
-      type: "POST",
-      headers: { "cache-control": "no-cache" },
-      url : 'http://import.loc/modules/importpalmira/ajax.php',
-      // url : 'http://import.loc/ru/module/importpalmira/task',
-      // dataType: 'json',
-      data: {
-        // token : 'cb1231baa818f2bc7d15cbb7827a0724'
-        ajax: true,
-        action: 'importchange'
-      },
-      success : function(data){
-        console.log('success');
-      }
+
+function btnAjax() {
+  if (typeof(importpalmira_ajax) != 'undefined') {
+    const btn = document.querySelector('#devbtn');
+    btn.addEventListener('click', () => {
+      const url = window.location.href;
+      console.log(url);
+      jQuery.ajax({
+        type: "POST",
+        // headers: { "cache-control": "no-cache" },
+        url : importpalmira_ajax,
+        dataType: 'json',
+        data: {
+          // token : 'cb1231baa818f2bc7d15cbb7827a0724'
+          ajax: true,
+          action: 'changeconfyear',
+        },
+        success : function(jsonData){
+          console.log('success');
+          console.log(jsonData);
+        }
+      });
     });
-    // const request = new XMLHttpRequest();
-    // request.open('POST', baseDir + 'modules/importpamira/importpalmira_ajax.php', true);
-    // request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
-    // request.onload = function () {
-    //   console.log('request onload');
-    // };
-    //
-    // request.onerror = function () {
-    //   console.log('request onerror');
-    // }
-    //
-    // request.send();
-  });
+  }
+}
+
+window.onload = function () {
+  btnAjax();
 };
