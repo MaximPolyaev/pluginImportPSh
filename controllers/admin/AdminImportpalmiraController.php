@@ -1,12 +1,13 @@
 <?php
 
+use MaximCode\ImportPalmira\FileReader;
 use MaximCode\ImportPalmira\ProgressManager;
 use MaximCode\ImportPalmira\TaskHelper;
 use MaximCode\ImportPalmira\WebHelpers;
 
 class AdminImportpalmiraController extends ModuleAdminController
 {
-    const STEP_COUNT = 5000;
+    const STEP_COUNT = 60;
     const STEP_DELAY = 200000;
 
     public function init()
@@ -55,5 +56,21 @@ class AdminImportpalmiraController extends ModuleAdminController
 
         WebHelpers::echoJson(['endlongprogress' => true]);
         exit;
+    }
+
+    public function ajaxProcessTestAjax()
+    {
+        $json = ['ajaxProcessTestAjax' => 'data'];
+
+        $json['import_file_path'] = Tools::getValue('importpalmira_import_file_path');
+
+        $fileReader = (new FileReader($json['import_file_path']))->init();
+
+        $json['read_headers'] = $fileReader->getHeaders() ?? 'error';
+
+
+        $json['errors'] = $fileReader->getErrors();
+        WebHelpers::echoJson($json);
+        die;
     }
 }

@@ -182,7 +182,8 @@ class ImportPalmira extends Module
         Media::addJsDef([
             'importpalmira_ajax' => $this->context->link->getAdminLink('AdminImportpalmira'),
             'importpalmira_step' => $this->step,
-            'importpalmira_module_url' => $this->url
+            'importpalmira_module_url' => $this->url,
+            'importpalmira_import_file_path' => Tools::getValue('IMPORTPALMIRA_IMPORT_FILE_PATH')
         ]);
 
 

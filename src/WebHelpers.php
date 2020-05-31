@@ -20,7 +20,7 @@ final class WebHelpers
     //Выдать ответ в формате JSON
     static public function echoJson(Array $value)
     {
-        header('Content-Type: application/json; charset=UTF-8');
+//        header('Content-Type: application/json; charset=UTF-8');
         $ret = json_encode($value);
         if($ret !== false)
         {
