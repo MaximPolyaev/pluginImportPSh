@@ -186,3 +186,29 @@
 .btn-primary {
   text-transform: none !important;
 }
+
+@keyframes importpalmira_move {
+  100% {
+    background-position: 40px 0;
+  }
+}
+
+.importpalmira-progress {
+  cursor: pointer;
+  background-color: #17326a;
+  height: 18px;
+  width: 100%;
+  border-radius: 5px;
+  box-sizing: border-box;
+  position: relative;
+  padding: 3px;
+}
+
+.importpalmira-progress_view {
+  background: #1376bb linear-gradient(45deg, rgba(255, 255, 255, 0.5) -15%, transparent 3%, transparent 36%, rgba(255, 255, 255, 0.5) 39%, rgba(255, 255, 255, 0.5) 75%, transparent 75%, transparent);
+  width: 35%;
+  height: 100%;
+  background-size: 40px;
+  border-radius: 5px;
+  animation: importpalmira_move 1s linear infinite;
+}

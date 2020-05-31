@@ -54,7 +54,13 @@
   <hr>
   <div>
     <div>
-      <button id="devbtn">dev-btn</button>
+      <button id="btnstartprogress">Btn start progress</button>
+    </div>
+    <div class="div">
+      <h2 style="font-size: 4rem; text-align: center">Загрзка товаров...<span id="importpalmira_progress_txt">0 %</span></h2>
+      <div class="importpalmira-progress">
+        <div class="importpalmira-progress_view" id="importpalmira_progress_view" style="width: 0"></div>
+      </div>
     </div>
     <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
       <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
