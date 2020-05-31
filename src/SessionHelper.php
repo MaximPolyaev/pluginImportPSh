@@ -80,19 +80,19 @@ final class SessionHelper
     //Если ключ отсутствует, будет возвращено значение $default_value
     static public function get($name, $default_value = null)
     {
-        return isset($_SESSION[$name]) && !is_array($_SESSION[$name])
-            ? $_SESSION[$name] : $default_value;
+        return isset($_SESSION['IMPORT_PALMIRA']['PGS'][$name]) && !is_array($_SESSION['IMPORT_PALMIRA']['PGS'][$name])
+            ? $_SESSION['IMPORT_PALMIRA']['PGS'][$name] : $default_value;
     }
 
     //Установить значение ключа с именем $name в $value
     static public function set($name, $value)
     {
-        $_SESSION[$name] = $value;
+        $_SESSION['IMPORT_PALMIRA']['PGS'][$name] = $value;
     }
 
     //Удалить ключ с именем $name из сессии
     static public function remove($name)
     {
-        unset($_SESSION[$name]);
+        unset($_SESSION['IMPORT_PALMIRA']['PGS'][$name]);
     }
 }

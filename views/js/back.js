@@ -29,7 +29,7 @@
 window.onload = function () {
 
   // Идентификаторы завершенных задач
-  var finishedTasks = [];
+  let finishedTasks = [];
 
   //Стартовать длительную задачу
   let startLongTask = function(task_id)
@@ -63,7 +63,7 @@ window.onload = function () {
       dataType: 'json',
       data: {
         ajax: true,
-        action: 'changeconfyear',
+        action: 'getprogress',
         get_progress: 1,
         task: task_id
       },

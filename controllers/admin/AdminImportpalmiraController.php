@@ -19,7 +19,7 @@ class AdminImportpalmiraController extends ModuleAdminController
         parent::initContent();
     }
 
-    public function ajaxProcessChangeConfYear()
+    public function ajaxProcessGetProgress()
     {
         $progress = ProgressManager::getProgress();
         if ($progress !== null)
@@ -33,10 +33,6 @@ class AdminImportpalmiraController extends ModuleAdminController
     public function ajaxProcessProgressNew()
     {
         WebHelpers::echoJson(['task' => TaskHelper::generateTaskId()]);
-
-        if (WebHelpers::request('new_task') === 1) {
-            WebHelpers::echoJson(['task' => TaskHelper::generateTaskId()]);
-        }
 
         exit;
     }
