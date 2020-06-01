@@ -372,12 +372,36 @@
                                           });
                                 </script>
                               {/if}
+                              {elseif $input.type == 'matches_configurations'}
+                              {if isset($input.configuration_keys) && !empty($input.configuration_keys)}
+                                <table class="table" id="IMPORTPALMIRA_TABLE_CFG" data-num="{$input.configuration_keys|@count}">
+                                  <tbody>
+                                  {foreach from=$input.configuration_keys key=$key item=$name}
+                                    <tr>
+                                      <td id="{$input.name}_{$key}">{$name}</td>
+                                      <td style="width: 40px">
+                                        <button type="button" data-id="{$input.name}_{$key}"
+                                                class="btn btn-primary IMPORTPALMIRA_USE_CFG">
+                                          {l s='Use' d='Admin.Actions'}
+                                        </button>
+                                      </td>
+                                      <td style="width: 40px">
+                                        <button type="button" data-id="{$input.name}_{$key}"
+                                                class="btn btn-danger IMPORTPALMIRA_DELETE_CFG">
+                                          {l s='Delete' d='Admin.Actions'}
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  {/foreach}
+                                  </tbody>
+                                </table>
+                              {/if}
                               {elseif $input.type == 'text_save'}
                                 <div class="col-sm-10">
                                   <input type="text" name="{$input.name}" id="{$input.name}">
                                 </div>
                                 <div class="col-sm-2">
-                                  <button type="button" style="width: 100%"
+                                  <button id="IMPORTPALMIRA_BTN_SAVE_MATCHES" type="button" style="width: 100%"
                                           class="btn btn-default">{l s='Save' d='Admin.Actions'}</button>
                                 </div>
                               {elseif $input.type == 'election_table'}

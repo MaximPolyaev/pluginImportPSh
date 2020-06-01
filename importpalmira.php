@@ -159,9 +159,13 @@ class ImportPalmira extends Module
             $this->flash->add('step_one_is_error', 1);
             Tools::redirectAdmin($this->url);
         }
+
+        VarDumper::dump(Tools::getAllValues());
+
         $file_name = $fileUploader->getFileName();
         $this->context->smarty->assign('import_file_name', $file_name);
         $this->context->smarty->assign('file_success_msg', $fileUploader->getSuccess());
+        $this->context->controller->addJS($this->_path . 'views/js/matching.js');
     }
 
     public function renderStepThree()

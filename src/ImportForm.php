@@ -248,11 +248,12 @@ class ImportForm
                     'col' => 6,
                 ],
                 [
-                    'type' => 'history_files',
+                    'type' => 'matches_configurations',
                     'label' => $this->translate('Choose file from history'),
-                    'name' => 'IMPORTPALMIRA_TEST',
+                    'name' => 'IMPORTPALMIRA_CFG_KEY',
                     'col' => 6,
-                    'btnlink' => $this->module->url . "&token=" . $this->module->token
+                    'btnlink' => $this->module->url . "&token=" . $this->module->token,
+                    'configuration_keys' => ['key1', 'key2', 'key3']
                 ],
                 $this->getInputTextCfg(
                     'IMPORTPALMIRA_NUM_SKIP_ROWS',

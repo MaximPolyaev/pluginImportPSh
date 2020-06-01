@@ -30,7 +30,7 @@ const ajaxErrorCallback  = function (jqXHR, testStatus, errorThrown) {
   console.log(errorThrown);
 }
 
-window.onload = function () {
+document.addEventListener('DOMContentLoaded', function () {
   if (jQuery('#btntestajax').length) {
     console.log('find #btntestajax');
     testAjax();
@@ -122,7 +122,7 @@ window.onload = function () {
     jQuery('#importpalmira_progress_txt')
       .html(value + '%');
   }
-};
+});
 
 
 const testAjax = function () {
