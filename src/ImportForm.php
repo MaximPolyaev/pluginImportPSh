@@ -375,7 +375,7 @@ class ImportForm
             return false;
         }
 
-        $products = $fileReader->getData();
+        $products = $fileReader->getData(0, 7);
         if (!$products) {
             return false;
         }

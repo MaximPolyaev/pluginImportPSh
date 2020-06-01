@@ -219,6 +219,30 @@
                                            checked="checked"{/if}{if (isset($input.disabled) && $input.disabled) or (isset($value.disabled) && $value.disabled)}
                                            disabled="disabled"{/if}/>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 {strip}
                                     <label {if $value.value == 1} for="{$input.name}_on"{else} for="{$input.name}_off"{/if}>
                                         {if $value.value == 1}
@@ -310,42 +334,44 @@
                                 </script>
                                 {*                                {$input.file}*}
                               {elseif $input.type == 'history_files'}
-                                {if isset($input.files_name) && !empty($input.files_name)}
-                                  <table class="table" id="history_files">
-                                    <tbody>
-                                    {foreach from=$input.files_name key=$key item=$name}
-                                      <tr>
-                                        <td id="{$input.name}_{$key}">{$name}</td>
-                                        <td style="width: 40px">
-                                          <button type="button" data-id="{$input.name}_{$key}"
-                                                  class="btn btn-primary btn-use-file">
-                                            {l s='Use' d='Admin.Actions'}
-                                          </button>
-                                        </td>
-                                        <td style="width: 40px">
-                                          <a href="{$input.btnlink}&file_import_delete_name={$name}&delete_file_import=1" type="button" class="btn btn-danger">
-                                            {l s='Delete' d='Admin.Actions'}
-                                          </a>
-                                        </td>
-                                      </tr>
-                                    {/foreach}
-                                    </tbody>
-                                  </table>
-                                  <script type="text/javascript">
-                                    $(document)
-                                            .ready(function () {
-                                              $('#history_files .btn-use-file')
-                                                      .click(function (e) {
-                                                        $('#IMPORTPALMIRA_FILE_IMPORT-name')
-                                                                .val($('#' + $(e.target)
-                                                                        .data('id'))
-                                                                        .text());
-                                                        $('#IMPORTPALMIRA_FILE_IMPORT').val('');
-                                                      });
+                              {if isset($input.files_name) && !empty($input.files_name)}
+                                <table class="table" id="history_files">
+                                  <tbody>
+                                  {foreach from=$input.files_name key=$key item=$name}
+                                    <tr>
+                                      <td id="{$input.name}_{$key}">{$name}</td>
+                                      <td style="width: 40px">
+                                        <button type="button" data-id="{$input.name}_{$key}"
+                                                class="btn btn-primary btn-use-file">
+                                          {l s='Use' d='Admin.Actions'}
+                                        </button>
+                                      </td>
+                                      <td style="width: 40px">
+                                        <a href="{$input.btnlink}&file_import_delete_name={$name}&delete_file_import=1"
+                                           type="button" class="btn btn-danger">
+                                          {l s='Delete' d='Admin.Actions'}
+                                        </a>
+                                      </td>
+                                    </tr>
+                                  {/foreach}
+                                  </tbody>
+                                </table>
+                                <script type="text/javascript">
+                                  $(document)
+                                          .ready(function () {
+                                            $('#history_files .btn-use-file')
+                                                    .click(function (e) {
+                                                      $('#IMPORTPALMIRA_FILE_IMPORT-name')
+                                                              .val($('#' + $(e.target)
+                                                                      .data('id'))
+                                                                      .text());
+                                                      $('#IMPORTPALMIRA_FILE_IMPORT')
+                                                              .val('');
+                                                    });
 
-                                            });
-                                  </script>
-                                {/if}
+                                          });
+                                </script>
+                              {/if}
                               {elseif $input.type == 'text_save'}
                                 <div class="col-sm-10">
                                   <input type="text" name="{$input.name}" id="{$input.name}">
@@ -355,6 +381,8 @@
                                           class="btn btn-default">{l s='Save' d='Admin.Actions'}</button>
                                 </div>
                               {elseif $input.type == 'election_table'}
+                              {if isset($input.product_arr_import)}
+                              {if is_array($input.product_arr_import.header)}
                                 <div class="table-responsive" style="width: 100%; display: block; overflow-x: auto">
                                   <table class="table table-bordered mp-table">
                                     <thead>
@@ -387,6 +415,8 @@
                                     </tbody>
                                   </table>
                                 </div>
+                              {/if}
+                              {/if}
                               {/if}
                             {/block}{* end block input *}
 

@@ -19,6 +19,8 @@ class FileReader
     private $data;
     private $errors = [];
     private $str_length;
+    private $data_from;
+    private $data_to;
 
     public function __construct($file_path)
     {
@@ -74,14 +76,18 @@ class FileReader
         return $this->headers;
     }
 
-    public function getData()
+    public function getData($from = 0, $to = 0)
     {
-        if (empty($this->data) || is_null($this->data)) {
-            $this->readData();
+        if($to > 0 && $from > $to) {
+            return null;
+        }
 
-            if (empty($this->data) || is_null($this->data)) {
-                return null;
-            }
+        $this->data_from = $from;
+        $this->data_to = $to;
+        $this->readData();
+
+        if (empty($this->data) || is_null($this->data)) {
+            return null;
         }
 
         return $this->data;
@@ -98,13 +104,43 @@ class FileReader
             return;
         }
 
+        $counter = 0;
+
         while (($row = fgetcsv($this->file_open, $this->str_length, $this->delimiter)) !== false) {
             $row_new = [];
             foreach($this->headers as $i => $header_name) {
                 $row_new[$header_name] = $row[$i];
             }
 
-            $this->data[] = $row_new;
+            if ($this->data_from === 0 && $this->data_to === 0) {
+                $this->data[] = $row_new;
+            } else if ($this->data_from === 0 && $this->data_to > 0) {
+                if($counter <= $this->data_to) {
+                    $this->data[] = $row_new;
+                } else {
+                    return;
+                }
+            } else if ($this->data_from > 0 && $this->data_to == 0) {
+                if($counter >= $this->data_from) {
+                    $this->data[] = $row_new;
+                } else {
+                    $counter++;
+                    continue;
+                }
+            } else if ($this->data_from > 0 && $this->data_to > 0) {
+                if($counter >= $this->data_from) {
+                    if($counter <= $this->data_to) {
+                        $this->data[] = $row_new;
+                    } else {
+                        return;
+                    }
+                } else {
+                    $counter++;
+                    continue;
+                }
+            }
+
+            $counter++;
         }
     }
 
