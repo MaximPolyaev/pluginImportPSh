@@ -35,36 +35,23 @@ class ImportForm
 {
     private $module;
     private $translator;
-    private $table;
     private $context;
     private $identifier;
     private $step;
-    private $url;
-    private $token;
 
     /**
      * ImportForm constructor.
      * @param $module
-     * @param $table
-     * @param $context
-     * @param $identifier
-     * @param $step
-     * @param $token
      */
-    public function __construct($module, $table, $context, $identifier, $step, $token)
+    public function __construct($module)
     {
         $this->module = $module;
         $this->translator = $this->module->getTranslator();
-        $this->table = $table;
-        $this->context = $context;
-        $this->identifier = $identifier;
-        $this->step = $step;
-        $this->token = $token;
+        $this->context = $this->module->getContext();
+        $this->identifier = $this->module->getIdentifier();
+        $this->step = $this->module->step;
 
-        $this->url = $this->context->link->getAdminLink('AdminModules', false);
-        $this->url .= '&configure=' . $this->module->name;
-        $this->url .= '&tab_module=' . $this->module->tab;
-        $this->url .= '&module_name=' . $this->module->name;
+        VarDumper::dump($this);
     }
 
     /**
@@ -73,29 +60,15 @@ class ImportForm
     public function getView()
     {
         $helper = new HelperForm();
-
         $helper->show_toolbar = false;
-
-        $helper->table = $this->table;
-
         $helper->module = $this->module;
-        $helper->default_form_language = $this->context->language->id;
-        $helper->allow_employee_form_lang = \Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG', 0);
-
-        $helper->identifier = $this->identifier;
         $helper->submit_action = 'submitImportpalmiraModule';
+        $helper->show_cancel_button = true;
 
-        $helper->currentIndex = $this->url . '&step=' . ($this->step + 1);;
-
-        $helper->token = $this->token;
-
+        $helper->currentIndex = $this->module->url . '&step=' . ($this->step + 1);
         $helper->tpl_vars = array(
             'fields_value' => $this->getCfgValues(),
-            'languages' => $this->context->controller->getLanguages(),
-            'id_language' => $this->context->language->id,
         );
-
-        $helper->show_cancel_button = true;
 
         return $helper->generateForm($this->step === 0 ? $this->getCfgOneForm() : $this->getCfgTwoForm());
     }
@@ -146,7 +119,7 @@ class ImportForm
                     'label' => !empty($import_files_name) ? $this->translate('Choose file from history') : '',
                     'name' => 'IMPORTPALMIRA_FILE_ID',
                     'col' => 6,
-                    'btnlink' => $this->url . "&token=" . $this->token,
+                    'btnlink' => $this->module->url . "&token=" . $this->module->token,
                     'files_name' =>  $import_files_name
                 ],
                 $this->getSwitchCfg(
@@ -255,6 +228,8 @@ class ImportForm
         $productFieldsProvider = new ProductFieldsProvider($this->translator);
         $productFieldsCollection = $productFieldsProvider->getCollection();
 
+        VarDumper::dump(\Tools::getAllValues());
+
         $productArrImport = [
             'header' => ['ean13', 'name'],
             'products' => [
@@ -296,7 +271,7 @@ class ImportForm
                     'label' => $this->translate('Choose file from history'),
                     'name' => 'IMPORTPALMIRA_TEST',
                     'col' => 6,
-                    'btnlink' => $this->url . "&token=" . $this->token
+                    'btnlink' => $this->module->url . "&token=" . $this->module->token
                 ],
                 $this->getInputTextCfg(
                     'IMPORTPALMIRA_NUM_SKIP_ROWS',

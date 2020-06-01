@@ -82,7 +82,6 @@ class FileReader
     private function readHeaders()
     {
         $this->headers = fgetcsv($this->file_open, $this->str_length, $this->delimiter);
-//        VarDumper::dump($this->headers);
     }
 
     private function readData()

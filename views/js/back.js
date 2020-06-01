@@ -31,7 +31,10 @@ const ajaxErrorCallback  = function (jqXHR, testStatus, errorThrown) {
 }
 
 window.onload = function () {
-  testAjax();
+  if (jQuery('#btntestajax').length) {
+    console.log('find #btntestajax');
+    testAjax();
+  }
 
   // Идентификаторы завершенных задач
   let finishedTasks = [];

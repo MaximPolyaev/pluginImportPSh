@@ -40,10 +40,10 @@ class ImportPalmira extends Module
 {
     const _IMPORT_FILES_DIR_ = _PS_MODULE_DIR_ . 'importpalmira/importfiles/';
     private $form;
-    private $step;
-    private $token;
-    private $url;
     private $flash;
+    public $url;
+    public $token;
+    public $step;
     public $import_file_path;
 
     public function __construct()
@@ -80,15 +80,11 @@ class ImportPalmira extends Module
      */
     public function install()
     {
-        Configuration::updateValue('IMPORTPALMIRA_DELETE_PRODUCTS', false);
-
         return parent::install();
     }
 
     public function uninstall()
     {
-        Configuration::deleteByName('IMPORTPALMIRA_DELETE_PRODUCTS');
-
         return parent::uninstall();
     }
 
@@ -100,15 +96,13 @@ class ImportPalmira extends Module
         $this->token = Tools::getAdminTokenLite('AdminModules');
 
         $this->url = $this->context->link->getAdminLink('AdminModules', false);
-        $this->url .= '&token=' . $this->token;
         $this->url .= '&configure=' . $this->name;
-        $this->url .= '&tab_module=' . $this->tab;
-        $this->url .= '&module_name=' . $this->name;
+        $this->url .= '&token=' . $this->token;
 
         $this->flash = Flash::getInstance();
 
         $this->step = Tools::getValue('step') ? Tools::getValue('step') : 0;
-        $this->form = new ImportForm($this, $this->table, $this->context, $this->identifier, $this->step, $this->token);
+        $this->form = new ImportForm($this);
 
         /**
          * Delete file from history import files
@@ -157,7 +151,7 @@ class ImportPalmira extends Module
         $this->import_file_path = $fileUploader->getPath();
         if ($this->import_file_path === 'error') {
             $errors = $fileUploader->getErrors();
-            if(empty($errors)) {
+            if (empty($errors)) {
                 $errors[] = 'Возможно вы забыли загрузить файл';
             }
 
@@ -170,7 +164,8 @@ class ImportPalmira extends Module
         $this->context->smarty->assign('file_success_msg', $fileUploader->getSuccess());
     }
 
-    public function renderStepThree() {
+    public function renderStepThree()
+    {
         VarDumper::dump(Tools::getAllValues());
     }
 
@@ -202,5 +197,15 @@ class ImportPalmira extends Module
     public function isUsingNewTranslationSystem()
     {
         return true;
+    }
+
+    public function getContext()
+    {
+        return $this->context;
+    }
+
+    public function getIdentifier()
+    {
+        return $this->identifier;
     }
 }
