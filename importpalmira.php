@@ -208,4 +208,8 @@ class ImportPalmira extends Module
     {
         return $this->identifier;
     }
+
+    public function getImportFilePath() {
+        return $this->import_file_path;
+    }
 }

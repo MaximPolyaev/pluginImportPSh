@@ -27,6 +27,7 @@
 namespace MaximCode\ImportPalmira;
 
 use PrestaShop\PrestaShop\Adapter\Entity\HelperForm;
+use PrestaShop\PrestaShop\Core\Foundation\Filesystem\FileSystem;
 use PrestaShop\PrestaShop\Core\Import\EntityField\Provider\ProductFieldsProvider;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\VarDumper\VarDumper;
@@ -50,8 +51,6 @@ class ImportForm
         $this->context = $this->module->getContext();
         $this->identifier = $this->module->getIdentifier();
         $this->step = $this->module->step;
-
-        VarDumper::dump($this);
     }
 
     /**
@@ -228,25 +227,7 @@ class ImportForm
         $productFieldsProvider = new ProductFieldsProvider($this->translator);
         $productFieldsCollection = $productFieldsProvider->getCollection();
 
-        VarDumper::dump(\Tools::getAllValues());
-
-        $productArrImport = [
-            'header' => ['ean13', 'name'],
-            'products' => [
-                [
-                    'ean13' => '234324234',
-                    'name' => 'pen'
-                ],
-                [
-                    'ean13' => '234324234',
-                    'name' => 'pen'
-                ],
-                [
-                    'ean13' => '234324234',
-                    'name' => 'pen'
-                ]
-            ]
-        ];
+        $productArrImport = $this->getImportMatchingData();
 
         $cfg = [];
 
@@ -379,5 +360,37 @@ class ImportForm
         }
 
         return $files_names;
+    }
+
+    /**
+     * Get data matching types from import file
+     * @return array|bool
+     */
+    private function getImportMatchingData()
+    {
+        $file_path = $this->module->getImportFilePath();
+        $fileReader = (new FileReader($file_path))->init();
+        $headers = $fileReader->getHeaders();
+        if(!$headers) {
+            return false;
+        }
+
+        return [
+            'header' => $headers,
+            'products' => [
+                [
+                    'ean13' => '234324234',
+                    'name' => 'pen'
+                ],
+                [
+                    'ean13' => '234324234',
+                    'name' => 'pen'
+                ],
+                [
+                    'ean13' => '234324234',
+                    'name' => 'pen'
+                ]
+            ]
+        ];
     }
 }
