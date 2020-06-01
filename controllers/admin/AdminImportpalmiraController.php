@@ -67,6 +67,7 @@ class AdminImportpalmiraController extends ModuleAdminController
         $fileReader = (new FileReader($json['import_file_path']))->init();
 
         $json['read_headers'] = $fileReader->getHeaders() ?? 'error';
+        $json['read_data'] = $fileReader->getData() ?? 'error';
 
 
         $json['errors'] = $fileReader->getErrors();

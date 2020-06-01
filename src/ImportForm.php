@@ -119,7 +119,7 @@ class ImportForm
                     'name' => 'IMPORTPALMIRA_FILE_ID',
                     'col' => 6,
                     'btnlink' => $this->module->url . "&token=" . $this->module->token,
-                    'files_name' =>  $import_files_name
+                    'files_name' => $import_files_name
                 ],
                 $this->getSwitchCfg(
                     'IMPORTPALMIRA_FILE_IMPORT_SAVE',
@@ -341,7 +341,7 @@ class ImportForm
      * Get array files name from "importfiles" folder
      * @return array
      */
-    private function getImportFilesName() : array
+    private function getImportFilesName(): array
     {
         $import_dir = \ImportPalmira::_IMPORT_FILES_DIR_;
         $finder = new Finder();
@@ -353,7 +353,7 @@ class ImportForm
             foreach ($finder as $file) {
                 $file_ext = $file->getExtension();
 
-                if($file_ext === 'csv' || $file_ext === 'xml') {
+                if ($file_ext === 'csv' || $file_ext === 'xml') {
                     $files_names[] = $file->getFilename();
                 }
             }
@@ -371,26 +371,18 @@ class ImportForm
         $file_path = $this->module->getImportFilePath();
         $fileReader = (new FileReader($file_path))->init();
         $headers = $fileReader->getHeaders();
-        if(!$headers) {
+        if (!$headers) {
+            return false;
+        }
+
+        $products = $fileReader->getData();
+        if (!$products) {
             return false;
         }
 
         return [
             'header' => $headers,
-            'products' => [
-                [
-                    'ean13' => '234324234',
-                    'name' => 'pen'
-                ],
-                [
-                    'ean13' => '234324234',
-                    'name' => 'pen'
-                ],
-                [
-                    'ean13' => '234324234',
-                    'name' => 'pen'
-                ]
-            ]
+            'products' => $products
         ];
     }
 }

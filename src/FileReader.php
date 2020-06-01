@@ -65,7 +65,7 @@ class FileReader
         if (empty($this->headers) || is_null($this->headers)) {
             $this->readHeaders();
 
-            if(empty($this->headers) || is_null($this->headers)) {
+            if (empty($this->headers) || is_null($this->headers)) {
                 $this->errors[] = 'Error read headers';
                 return false;
             }
@@ -76,6 +76,14 @@ class FileReader
 
     public function getData()
     {
+        if (empty($this->data) || is_null($this->data)) {
+            $this->readData();
+
+            if (empty($this->data) || is_null($this->data)) {
+                return null;
+            }
+        }
+
         return $this->data;
     }
 
@@ -86,7 +94,18 @@ class FileReader
 
     private function readData()
     {
+        if (!$this->getHeaders()) {
+            return;
+        }
 
+        while (($row = fgetcsv($this->file_open, $this->str_length, $this->delimiter)) !== false) {
+            $row_new = [];
+            foreach($this->headers as $i => $header_name) {
+                $row_new[$header_name] = $row[$i];
+            }
+
+            $this->data[] = $row_new;
+        }
     }
 
     private function isExists($file_path)
@@ -96,5 +115,12 @@ class FileReader
         }
 
         return $this->fs->exists($file_path);
+    }
+
+    public function __destruct()
+    {
+        if ($this->file_open) {
+            fclose($this->file_open);
+        }
     }
 }
