@@ -228,6 +228,7 @@ class ImportForm
         $productFieldsCollection = $productFieldsProvider->getCollection();
 
         $productArrImport = $this->getImportMatchingData();
+        $configurations_keys = array_reverse((new JsonCfg())->getNames());
 
         $cfg = [];
 
@@ -249,11 +250,13 @@ class ImportForm
                 ],
                 [
                     'type' => 'matches_configurations',
-                    'label' => $this->translate('Choose file from history'),
+                    'label' => $this->translate('Saved configurations'),
+                    'labelHidden' => empty($configurations_keys),
+                    'labelClass' => 'IMPORTPALMIRA_LABEL_SELECT_CFG',
                     'name' => 'IMPORTPALMIRA_CFG_KEY',
                     'col' => 6,
                     'btnlink' => $this->module->url . "&token=" . $this->module->token,
-                    'configuration_keys' => ['key1', 'key2', 'key3']
+                    'configuration_keys' => $configurations_keys
                 ],
                 $this->getInputTextCfg(
                     'IMPORTPALMIRA_NUM_SKIP_ROWS',

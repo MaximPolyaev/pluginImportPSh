@@ -107,7 +107,8 @@
                       {else}
                         {block name="label"}
                           {if isset($input.label)}
-                            <label class="control-label col-lg-3{if isset($input.required) && $input.required && $input.type != 'radio'} required{/if}">
+                            <label class="control-label col-lg-3 {if isset($input.labelClass)}{$input.labelClass}{/if} {if isset($input.required) && $input.required && $input.type != 'radio'} required{/if} " style="{if isset($input.labelHidden) && $input.labelHidden}display: none;{/if}">
+
                               {if isset($input.hint)}
                               <span class="label-tooltip" data-toggle="tooltip" data-html="true"
                                     title="{if is_array($input.hint)}
@@ -218,6 +219,7 @@
                                            value="{$value.value}"{if $fields_value[$input.name] == $value.value}
                                            checked="checked"{/if}{if (isset($input.disabled) && $input.disabled) or (isset($value.disabled) && $value.disabled)}
                                            disabled="disabled"{/if}/>
+
 
 
 
@@ -373,29 +375,30 @@
                                 </script>
                               {/if}
                               {elseif $input.type == 'matches_configurations'}
-                              {if isset($input.configuration_keys) && !empty($input.configuration_keys)}
-                                <table class="table" id="IMPORTPALMIRA_TABLE_CFG" data-num="{$input.configuration_keys|@count}">
+                                <table class="table" id="IMPORTPALMIRA_TABLE_CFG"
+                                       data-num="{$input.configuration_keys|@count}">
                                   <tbody>
-                                  {foreach from=$input.configuration_keys key=$key item=$name}
-                                    <tr>
-                                      <td id="{$input.name}_{$key}">{$name}</td>
-                                      <td style="width: 40px">
-                                        <button type="button" data-id="{$input.name}_{$key}"
-                                                class="btn btn-primary IMPORTPALMIRA_USE_CFG">
-                                          {l s='Use' d='Admin.Actions'}
-                                        </button>
-                                      </td>
-                                      <td style="width: 40px">
-                                        <button type="button" data-id="{$input.name}_{$key}"
-                                                class="btn btn-danger IMPORTPALMIRA_DELETE_CFG">
-                                          {l s='Delete' d='Admin.Actions'}
-                                        </button>
-                                      </td>
-                                    </tr>
-                                  {/foreach}
+                                  {if isset($input.configuration_keys) && !empty($input.configuration_keys)}
+                                    {foreach from=$input.configuration_keys key=$key item=$name}
+                                      <tr>
+                                        <td id="{$input.name}_{$key}">{$name}</td>
+                                        <td style="width: 40px">
+                                          <button type="button" data-id="{$input.name}_{$key}"
+                                                  class="btn btn-primary IMPORTPALMIRA_USE_CFG">
+                                            {l s='Use' d='Admin.Actions'}
+                                          </button>
+                                        </td>
+                                        <td style="width: 40px">
+                                          <button type="button" data-id="{$input.name}_{$key}"
+                                                  class="btn btn-danger IMPORTPALMIRA_DELETE_CFG">
+                                            {l s='Delete' d='Admin.Actions'}
+                                          </button>
+                                        </td>
+                                      </tr>
+                                    {/foreach}
+                                  {/if}
                                   </tbody>
                                 </table>
-                              {/if}
                               {elseif $input.type == 'text_save'}
                                 <div class="col-sm-10">
                                   <input type="text" name="{$input.name}" id="{$input.name}">

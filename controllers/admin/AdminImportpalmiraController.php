@@ -7,6 +7,7 @@ use MaximCode\ImportPalmira\TaskHelper;
 use MaximCode\ImportPalmira\WebHelpers;
 use Symfony\Component\VarDumper\VarDumper;
 
+
 class AdminImportpalmiraController extends ModuleAdminController
 {
     const STEP_COUNT = 60;
@@ -82,19 +83,27 @@ class AdminImportpalmiraController extends ModuleAdminController
         $jsonCfg = new JsonCfg();
         $jsonCfg->save(Tools::getValue('name_cfg'), Tools::getValue('new_json_data'));
 
-        // Todo: convert method getErrors() to getSaveErrors()
-
-        WebHelpers::echoJson(['save_json' => $jsonCfg->getStatusSave(), 'save_json_errors' => $jsonCfg->getErrors()]);
+        WebHelpers::echoJson(['save_json' => $jsonCfg->getSaveStatus(), 'save_json_errors' => $jsonCfg->getSaveErrors()]);
         die;
     }
 
     public function ajaxProcessDeleteJsonCfg()
     {
         $jsonCfg = new JsonCfg();
-        // Todo: create method delete()
         $jsonCfg->delete(Tools::getValue('delete_name_cfg'));
 
-        // Todo: create methods getStatusDelete() and getDeleteErrors
-        WebHelpers::echoJson(['delete_json' => $jsonCfg->getStatusDelete(), 'delete_json_errors' => $jsonCfg->getDeleteErrors]);
+        WebHelpers::echoJson(['delete_json' => $jsonCfg->getDeleteStatus(), 'delete_json_errors' => $jsonCfg->getDeleteErrors()]);
+        die;
+    }
+
+    public function ajaxProcessUseJsonCfg()
+    {
+        $jsonCfg = new JsonCfg();
+
+        WebHelpers::echoJson([
+            'json_cfg_data' => $jsonCfg->getData(Tools::getValue('name_cfg')),
+            'use_json_errors' => $jsonCfg->getUseErrors()
+        ]);
+        die;
     }
 }

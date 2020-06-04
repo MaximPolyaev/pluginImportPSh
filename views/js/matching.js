@@ -9,17 +9,20 @@ document.addEventListener('DOMContentLoaded', () => {
       if (nameCfg !== '') {
         const isAllSelectNo = selectTypeFields.every(node => jQuery(node).val() === 'no');
         if(isAllSelectNo) {
-          console.log('Не выбраны поля для настройка сопостовления данных')
+          jQuery.growl.error({
+            title: 'Ошибка сохраниния конфигурации',
+            size: 'large',
+            message: 'Не выбраны поля для настройка сопостовления данных'
+          });
           return;
         }
-        // inputNameCfg.val('');
+        inputNameCfg.val('');
 
         const newDataCfg = getNewDataCfg(selectTypeFields);
 
         console.log('Отправление данных для новой конфигурации', newDataCfg);
         jQuery.ajax({
           type: 'POST',
-          headers: {'cache-control': 'no-cache'},
           url: importpalmira_ajax,
           dataType: 'json',
           data: {
@@ -29,12 +32,30 @@ document.addEventListener('DOMContentLoaded', () => {
             name_cfg: nameCfg
           },
           success: function (data) {
-            console.log('Ответ после отправления данных', data);
-            addCfgMatchesToHistory(nameCfg)
+            if (data.save_json) {
+              jQuery.growl.notice({
+                title: 'Успех!',
+                size: 'large',
+                message: 'Конфигурация успешно сохранена'
+              });
+              addCfgMatchesToHistory(nameCfg);
+            } else {
+              data.save_json_errors.forEach(error => {
+                jQuery.growl.error({
+                  title: 'Ошибка сохраниния конфигурации',
+                  size: 'large',
+                  message: error
+                });
+              });
+            }
           }
         });
       } else {
-        console.log('Введите имя кофигурации');
+        jQuery.growl.error({
+          title: 'Ошибка сохраниния конфигурации',
+          size: 'large',
+          message: 'Введите имя конфигурации'
+        });
       }
     });
   }
@@ -48,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (target.classList.contains('IMPORTPALMIRA_DELETE_CFG')) {
       deleteCfg(target);
+      console.log('delete click');
     }
   });
 });
@@ -58,6 +80,9 @@ const addCfgMatchesToHistory = (name = 'test') => {
     return;
   }
   const key = tableCfg.data('num');
+  if (key === 0) {
+    jQuery('.IMPORTPALMIRA_LABEL_SELECT_CFG').show();
+  }
 
   tableCfg.data('num', key + 1);
 
@@ -92,8 +117,44 @@ const getNewDataCfg = fields => {
 };
 
 const useCfg = btn => {
-  const cfgName = jQuery('#' + jQuery(btn).data('id')).text();
-  console.log('useCfg', cfgName);
+  const nameCfg = jQuery('#' + jQuery(btn).data('id')).text();
+
+  jQuery.ajax({
+    type: 'POST',
+    url: importpalmira_ajax,
+    dataType: 'json',
+    data: {
+      ajax: true,
+      action: 'usejsoncfg',
+      name_cfg: nameCfg
+    },
+    success: function (data) {
+      console.log(data);
+      if (data.json_cfg_data === null) {
+        data.use_json_errors.forEach(error => {
+          jQuery.growl.error({
+            title: 'Ошибка использования конфигурации',
+            size: 'large',
+            message: error
+          });
+        });
+      } else if (Array.isArray(data.json_cfg_data)) {
+        const selectTypeFields = jQuery('select[name=IMPORTPALMIRA_TYPE_VALUE\\[\\]]');
+
+        for(let i in data.json_cfg_data) {
+          if (selectTypeFields[+i] === undefined) {
+            break;
+          }
+          selectTypeFields[+i].value = data.json_cfg_data[+i];
+        }
+        jQuery.growl.notice({
+          title: '',
+          size: 'large',
+          message: 'Конфигурация установлена'
+        });
+      }
+    }
+  });
 };
 
 const deleteCfg = btn => {
@@ -103,7 +164,6 @@ const deleteCfg = btn => {
 
   jQuery.ajax({
     type: 'POST',
-    headers: {'cache-control': 'no-cache'},
     url: importpalmira_ajax,
     dataType: 'json',
     data: {
@@ -112,10 +172,28 @@ const deleteCfg = btn => {
       delete_name_cfg: nameCfg
     },
     success: function (data) {
-      console.log('deleteCfg', nameCfg);
-      console.log('delete cfg data', data);
-      tableCfg.data('num', tableCfg.data('num') - 1);
-      nameCfgElement.parent().remove();
+      if (data.delete_json) {
+        jQuery.growl.notice({
+          title: 'Успех!',
+          size: 'large',
+          message: 'Конфигурация успешно удалена'
+        });
+
+        const num_configurations = tableCfg.data('num') - 1;
+        tableCfg.data('num', num_configurations);
+        nameCfgElement.parent().remove();
+        if (num_configurations === 0) {
+          jQuery('.IMPORTPALMIRA_LABEL_SELECT_CFG').hide();
+        }
+      } else {
+        data.delete_json_errors.forEach(error => {
+          jQuery.growl.error({
+            title: 'Ошибка удления конфигурации',
+            size: 'large',
+            message: error
+          });
+        });
+      }
     }
   });
 };

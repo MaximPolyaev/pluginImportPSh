@@ -160,8 +160,6 @@ class ImportPalmira extends Module
             Tools::redirectAdmin($this->url);
         }
 
-        VarDumper::dump(Tools::getAllValues());
-
         $file_name = $fileUploader->getFileName();
         $this->context->smarty->assign('import_file_name', $file_name);
         $this->context->smarty->assign('file_success_msg', $fileUploader->getSuccess());
