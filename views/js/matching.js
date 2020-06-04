@@ -12,12 +12,27 @@ document.addEventListener('DOMContentLoaded', () => {
           console.log('Не выбраны поля для настройка сопостовления данных')
           return;
         }
-        inputNameCfg.val('');
+        // inputNameCfg.val('');
 
         const newDataCfg = getNewDataCfg(selectTypeFields);
-        console.log('Отправление данных для новой конфигурации', newDataCfg);
 
-        addCfgMatchesToHistory(nameCfg)
+        console.log('Отправление данных для новой конфигурации', newDataCfg);
+        jQuery.ajax({
+          type: 'POST',
+          headers: {'cache-control': 'no-cache'},
+          url: importpalmira_ajax,
+          dataType: 'json',
+          data: {
+            ajax: true,
+            action: 'savejsoncfg',
+            new_json_data: newDataCfg,
+            name_cfg: nameCfg
+          },
+          success: function (data) {
+            console.log('Ответ после отправления данных', data);
+            addCfgMatchesToHistory(nameCfg)
+          }
+        });
       } else {
         console.log('Введите имя кофигурации');
       }
@@ -83,11 +98,24 @@ const useCfg = btn => {
 
 const deleteCfg = btn => {
   const tableCfg = jQuery('#IMPORTPALMIRA_TABLE_CFG');
-  const cfgNameElement = jQuery('#' + jQuery(btn).data('id'));
-  const cfgName = cfgNameElement.text();
+  const nameCfgElement = jQuery('#' + jQuery(btn).data('id'));
+  const nameCfg = nameCfgElement.text();
 
-  tableCfg.data('num', tableCfg.data('num') - 1);
-  cfgNameElement.parent().remove();
-
-  console.log('deleteCfg', cfgName);
+  jQuery.ajax({
+    type: 'POST',
+    headers: {'cache-control': 'no-cache'},
+    url: importpalmira_ajax,
+    dataType: 'json',
+    data: {
+      ajax: true,
+      action: 'deletejsoncfg',
+      delete_name_cfg: nameCfg
+    },
+    success: function (data) {
+      console.log('deleteCfg', nameCfg);
+      console.log('delete cfg data', data);
+      tableCfg.data('num', tableCfg.data('num') - 1);
+      nameCfgElement.parent().remove();
+    }
+  });
 };

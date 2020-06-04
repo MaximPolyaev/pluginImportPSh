@@ -1,9 +1,11 @@
 <?php
 
 use MaximCode\ImportPalmira\FileReader;
+use MaximCode\ImportPalmira\JsonCfg;
 use MaximCode\ImportPalmira\ProgressManager;
 use MaximCode\ImportPalmira\TaskHelper;
 use MaximCode\ImportPalmira\WebHelpers;
+use Symfony\Component\VarDumper\VarDumper;
 
 class AdminImportpalmiraController extends ModuleAdminController
 {
@@ -73,5 +75,26 @@ class AdminImportpalmiraController extends ModuleAdminController
         $json['errors'] = $fileReader->getErrors();
         WebHelpers::echoJson($json);
         die;
+    }
+
+    public function ajaxProcessSaveJsonCfg()
+    {
+        $jsonCfg = new JsonCfg();
+        $jsonCfg->save(Tools::getValue('name_cfg'), Tools::getValue('new_json_data'));
+
+        // Todo: convert method getErrors() to getSaveErrors()
+
+        WebHelpers::echoJson(['save_json' => $jsonCfg->getStatusSave(), 'save_json_errors' => $jsonCfg->getErrors()]);
+        die;
+    }
+
+    public function ajaxProcessDeleteJsonCfg()
+    {
+        $jsonCfg = new JsonCfg();
+        // Todo: create method delete()
+        $jsonCfg->delete(Tools::getValue('delete_name_cfg'));
+
+        // Todo: create methods getStatusDelete() and getDeleteErrors
+        WebHelpers::echoJson(['delete_json' => $jsonCfg->getStatusDelete(), 'delete_json_errors' => $jsonCfg->getDeleteErrors]);
     }
 }
