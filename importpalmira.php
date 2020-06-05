@@ -174,6 +174,8 @@ class ImportPalmira extends Module
 
     public function renderStepThree()
     {
+        Media::addJsDef(['importpalmira_type_value' => Tools::getValue('IMPORTPALMIRA_TYPE_VALUE')]);
+        $this->context->controller->addJS($this->_path . 'views/js/upload.js');
         VarDumper::dump(Tools::getAllValues());
     }
 

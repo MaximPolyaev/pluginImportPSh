@@ -1,6 +1,7 @@
 <?php
 
 use MaximCode\ImportPalmira\FileReader;
+use MaximCode\ImportPalmira\ImportHelper;
 use MaximCode\ImportPalmira\JsonCfg;
 use MaximCode\ImportPalmira\ProgressManager;
 use MaximCode\ImportPalmira\TaskHelper;
@@ -63,18 +64,26 @@ class AdminImportpalmiraController extends ModuleAdminController
 
     public function ajaxProcessTestAjax()
     {
-        $json = ['ajaxProcessTestAjax' => 'data'];
+        $import_file_path = Tools::getValue('importpalmira_import_file_path');
 
-        $json['import_file_path'] = Tools::getValue('importpalmira_import_file_path');
+        $fileReader = (new FileReader($import_file_path))->init();
 
-        $fileReader = (new FileReader($json['import_file_path']))->init();
+        $import_matches = Tools::getValue('importpalmira_type_value');
+        $import_headers = $fileReader->getHeaders() ?? 'error';
+        $import_data = $fileReader->getData() ?? 'error';
 
-        $json['read_headers'] = $fileReader->getHeaders() ?? 'error';
-        $json['read_data'] = $fileReader->getData() ?? 'error';
+        if ($import_headers === 'error' || $import_data === 'error') {
+            WebHelpers::echoJson([
+                'response' => 'true',
+                'import_status' => false,
+                'errors' => $fileReader->getErrors()
+            ]);
+            die;
+        }
 
+        $import_data = ImportHelper::optimize_matching($import_data, $import_matches);
 
-        $json['errors'] = $fileReader->getErrors();
-        WebHelpers::echoJson($json);
+        WebHelpers::echoJson(['response' => 'true', 'import_status' => true]);
         die;
     }
 
