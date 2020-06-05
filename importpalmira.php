@@ -110,6 +110,12 @@ class ImportPalmira extends Module
         if ((bool)Tools::getValue('delete_file_import') && (bool)($file_del = Tools::getValue('file_import_delete_name'))) {
             Tools::deleteFile(self::_IMPORT_FILES_DIR_ . $file_del);
             Tools::redirectAdmin($this->url);
+        } else if ((bool)Tools::getValue('delete_file_import') && (bool)Tools::getValue('delete_file_import_all')) {
+            $files_name = FileUploader::getImportFilesName();
+            foreach ($files_name as $name) {
+                Tools::deleteFile(self::_IMPORT_FILES_DIR_ . $name);
+            }
+            Tools::redirectAdmin($this->url);
         }
 
         switch (+$this->step) {

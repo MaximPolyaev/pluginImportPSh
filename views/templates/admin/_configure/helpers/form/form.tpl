@@ -356,6 +356,11 @@
                                       </td>
                                     </tr>
                                   {/foreach}
+                                    <tr>
+                                      <td colspan="3">
+                                        <a href="{$input.btnlink}&delete_file_import=1&delete_file_import_all=1" type="button" class="btn btn-danger">Удалить все файлы</a>
+                                      </td>
+                                    </tr>
                                   </tbody>
                                 </table>
                                 <script type="text/javascript">
