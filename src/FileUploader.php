@@ -5,6 +5,7 @@ namespace MaximCode\ImportPalmira;
 
 
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\VarDumper\VarDumper;
 
@@ -96,11 +97,39 @@ class FileUploader
 
     private function isExists()
     {
-        if ($this->fs->exists(self::_IMPORT_FILES_DIR_ . $this->file_name) && $this->file_size) {
-            $exist_file = new File(self::_IMPORT_FILES_DIR_ . $this->file_name);
-            if ($exist_file->getSize() === $this->file_size) {
-                $this->errors[] = $this->module->getTranslator()->trans('Upload file error: file is exist', [], 'Modules.Importpalmira.Importpalmira');
-                return true;
+        $files_name = self::getImportFilesName();
+
+        foreach ($files_name as $name) {
+            if ($this->file_name === $name) {
+                $exist_file = new File(self::_IMPORT_FILES_DIR_ . $name);
+                if ($exist_file->getSize() === $this->file_size) {
+                    $this->errors[] = $this->module->getTranslator()->trans('Upload file error: file "%s" is exist', [$name], 'Modules.Importpalmira.Importpalmira');
+                    return true;
+                }
+            }
+        }
+
+        $files_name = array_map(function ($name) {
+            $regexp = '/^(\d{2}-\d{2}-\d{2}-\d{6}-)?(?<file_name>.+)$/ui';
+            preg_match($regexp, $name, $matches);
+
+            if (!isset($matches['file_name'])) {
+                return null;
+            }
+
+            return ['file_name' => $matches['file_name'], 'original_name' => $name];
+        }, $files_name);
+        $files_name = array_filter($files_name, function ($name) {
+            return !is_null($name);
+        });
+
+        foreach ($files_name as $name) {
+            if ($this->file_name === $name['file_name']) {
+                $exist_file = new File(self::_IMPORT_FILES_DIR_ . $name['original_name']);
+                if ($exist_file->getSize() === $this->file_size) {
+                    $this->errors[] = $this->module->getTranslator()->trans('Upload file error: file "%s" is exist', [$this->file_name], 'Modules.Importpalmira.Importpalmira');
+                    return true;
+                }
             }
         }
 
@@ -121,5 +150,30 @@ class FileUploader
         $file_ext = explode('.', $this->file_name);
         $file_ext = strtolower(end($file_ext));
         return $file_ext;
+    }
+
+    /**
+     * Get array files name from "importfiles" folder
+     * @return array
+     */
+    public static function getImportFilesName(): array
+    {
+        $import_dir = \ImportPalmira::_IMPORT_FILES_DIR_;
+        $finder = new Finder();
+        $finder->files()->in($import_dir);
+
+        $files_names = [];
+
+        if ($finder->hasResults()) {
+            foreach ($finder as $file) {
+                $file_ext = $file->getExtension();
+
+                if ($file_ext === 'csv' || $file_ext === 'xml') {
+                    $files_names[] = $file->getFilename();
+                }
+            }
+        }
+
+        return $files_names;
     }
 }

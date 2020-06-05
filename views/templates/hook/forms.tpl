@@ -56,9 +56,6 @@
   </div>
   <hr>
   <div id="importpalmira_view">
-    <div>
-      <button id="btnstartprogress">Btn start progress</button>
-    </div>
     {if isset($step_one_errors)}
       {foreach from=$step_one_errors item=error}
         <div class="alert alert-danger" role="alert">

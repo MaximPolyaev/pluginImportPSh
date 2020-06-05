@@ -98,7 +98,7 @@ class ImportForm
     {
         $cfg = [];
 
-        $import_files_name = $this->getImportFilesName();
+        $import_files_name = FileUploader::getImportFilesName();
 
         $cfg[] = ['form' => [
             'title' => $this->translate('Select file to import'),
@@ -338,32 +338,6 @@ class ImportForm
     private function translate($string, $arr = [])
     {
         return $this->module->getTranslator()->trans($string, $arr, 'Modules.Importpalmira.Importpalmira');
-    }
-
-
-    /**
-     * Get array files name from "importfiles" folder
-     * @return array
-     */
-    private function getImportFilesName(): array
-    {
-        $import_dir = \ImportPalmira::_IMPORT_FILES_DIR_;
-        $finder = new Finder();
-        $finder->files()->in($import_dir);
-
-        $files_names = [];
-
-        if ($finder->hasResults()) {
-            foreach ($finder as $file) {
-                $file_ext = $file->getExtension();
-
-                if ($file_ext === 'csv' || $file_ext === 'xml') {
-                    $files_names[] = $file->getFilename();
-                }
-            }
-        }
-
-        return $files_names;
     }
 
     /**
