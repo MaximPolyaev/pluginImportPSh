@@ -212,6 +212,10 @@ class ImportDB
         if (isset($info['low_stock_alert'])) {
             $product->low_stock_alert = $info['low_stock_alert'];
         }
+
+        if (isset($info['low_stock_threshold'])) {
+            $product->low_stock_threshold = $info['low_stock_threshold'] ? $info['low_stock_threshold'] : null;
+        }
     }
 
     public function addSpecificPrice($product_id, $info)
