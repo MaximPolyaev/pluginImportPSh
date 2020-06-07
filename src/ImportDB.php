@@ -242,6 +242,18 @@ class ImportDB
         if (isset($info['description'])) {
             $product->description = $info['description'];
         }
+
+        if (isset($info['meta_title'])) {
+            $product->meta_title = $info['meta_title'];
+        }
+
+        if (isset($info['meta_description'])) {
+            $product->meta_description = $info['meta_description'];
+        }
+
+        if (isset($info['meta_keywords'])) {
+            $product->meta_keywords = $info['meta_keywords'];
+        }
     }
 
     public function addSpecificPrice($product_id, $info)
