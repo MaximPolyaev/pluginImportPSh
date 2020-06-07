@@ -234,6 +234,14 @@ class ImportDB
         if (isset($info['unit_price'])) {
             $product->unit_price = $info['unit_price'] ? $info['unit_price'] : null;
         }
+
+        if (isset($info['description_short'])) {
+            $product->description_short = $info['description_short'];
+        }
+
+        if (isset($info['description'])) {
+            $product->description = $info['description'];
+        }
     }
 
     public function addSpecificPrice($product_id, $info)
