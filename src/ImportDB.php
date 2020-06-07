@@ -254,6 +254,10 @@ class ImportDB
         if (isset($info['meta_keywords'])) {
             $product->meta_keywords = $info['meta_keywords'];
         }
+
+        if (isset($info['link_rewrite'])) {
+            $product->link_rewrite = $info['link_rewrite'];
+        }
     }
 
     public function addSpecificPrice($product_id, $info)
