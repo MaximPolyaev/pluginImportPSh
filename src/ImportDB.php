@@ -222,6 +222,10 @@ class ImportDB
                 $product->visibility = $info['visibility'];
             }
         }
+
+        if (isset($info['additional_shipping_cost'])) {
+            $product->additional_shipping_cost = $info['additional_shipping_cost'];
+        }
     }
 
     public function addSpecificPrice($product_id, $info)
