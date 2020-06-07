@@ -296,6 +296,12 @@ class ImportDB
         if (isset($info['online_only'])) {
             $product->online_only = $info['online_only'];
         }
+
+        if (isset($info['condition'])) {
+            if (in_array($info['condition'], ['new', 'used', 'refurbished'])) {
+                $product->condition = $info['condition'];
+            }
+        }
     }
 
     public function addSpecificPrice($product_id, $info)
