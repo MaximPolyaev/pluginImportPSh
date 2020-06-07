@@ -205,6 +205,13 @@ class ImportDB
             $product->delivery_out_stock = $info['delivery_out_stock'];
         }
 
+        if (isset($info['minimal_quantity'])) {
+            $product->minimal_quantity = $info['minimal_quantity'];
+        }
+
+        if (isset($info['low_stock_alert'])) {
+            $product->low_stock_alert = $info['low_stock_alert'];
+        }
     }
 
     public function addSpecificPrice($product_id, $info)
