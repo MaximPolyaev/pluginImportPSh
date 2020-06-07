@@ -144,7 +144,6 @@ class ImportDB
                     $product->deleteImages();
                 }
             }
-
         }
 
         \Tools::clearCache();
@@ -292,6 +291,10 @@ class ImportDB
 
         if (isset($info['show_price'])) {
             $product->show_price = $info['show_price'];
+        }
+
+        if (isset($info['online_only'])) {
+            $product->online_only = $info['online_only'];
         }
     }
 
