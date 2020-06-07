@@ -56,8 +56,12 @@ class ImportDB
                 $product->id = $data_item['id'];
             }
 
-            $this->addUniqueFields($product, $data_item);
             $this->addSimpleFields($product, $data_item);
+
+            if (isset($info['supplier_reference'])) {
+//            $product->supplier_reference = 'Applestore';
+                $product->addSupplierReference('1', 0, $info['supplier_reference'], '10', '1');
+            }
 
             if ($is_update) {
                 $product->update();
@@ -99,16 +103,13 @@ class ImportDB
             }
         }
 
-//        \Tools::clearCache();
+        \Tools::clearCache();
     }
 
-    public function addUniqueFields($product, $info)
-    {
-        if (isset($info['reference'])) {
-            $product->reference = $info['reference'];
-        }
-    }
-
+    /**
+     * @param $product Product
+     * @param $info
+     */
     public function addSimpleFields($product, $info)
     {
         if (isset($info['active'])) {
@@ -133,6 +134,10 @@ class ImportDB
 
         if (isset($info['on_sale'])) {
             $product->on_sale = $info['on_sale'];
+        }
+
+        if (isset($info['reference'])) {
+            $product->reference = $info['reference'];
         }
     }
 
