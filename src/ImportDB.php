@@ -258,6 +258,14 @@ class ImportDB
         if (isset($info['link_rewrite'])) {
             $product->link_rewrite = $info['link_rewrite'];
         }
+
+        if (isset($info['available_now'])) {
+            $product->available_now = $info['available_now'];
+        }
+
+        if (isset($info['available_later'])) {
+            $product->available_later = $info['available_later'];
+        }
     }
 
     public function addSpecificPrice($product_id, $info)
