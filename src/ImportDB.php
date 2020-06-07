@@ -226,6 +226,14 @@ class ImportDB
         if (isset($info['additional_shipping_cost'])) {
             $product->additional_shipping_cost = $info['additional_shipping_cost'];
         }
+
+        if (isset($info['unity'])) {
+            $product->unity = $info['unity'] ? $info['unity'] : null;
+        }
+
+        if (isset($info['unit_price'])) {
+            $product->unit_price = $info['unit_price'] ? $info['unit_price'] : null;
+        }
     }
 
     public function addSpecificPrice($product_id, $info)
