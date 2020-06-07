@@ -282,6 +282,10 @@ class ImportDB
                 $product->date_add = $info['date_add'];
             }
         }
+
+        if (isset($info['show_price'])) {
+            $product->show_price = $info['show_price'];
+        }
     }
 
     public function addSpecificPrice($product_id, $info)
