@@ -172,6 +172,10 @@ class ImportDB
         if (isset($info['reference'])) {
             $product->reference = $info['reference'];
         }
+
+        if (isset($info['ecotax'])) {
+            $product->ecotax = $info['ecotax'];
+        }
     }
 
     public function addSpecificPrice($product_id, $info)
