@@ -306,6 +306,14 @@ class ImportDB
         if (isset($info['customizable'])) {
             $product->customizable = $info['customizable'];
         }
+
+        if (isset($info['uploadable_files'])) {
+            $product->uploadable_files = $info['uploadable_files'];
+        }
+
+        if (isset($info['text_fields'])) {
+            $product->text_fields = $info['text_fields'];
+        }
     }
 
     public function addSpecificPrice($product_id, $info)
