@@ -318,6 +318,11 @@ class ImportDB
         if (isset($info['text_fields'])) {
             $product->text_fields = $info['text_fields'];
         }
+
+        if (isset($info['is_virtual'])) {
+            VarDumper::dump($info['is_virtual']);
+            $product->is_virtual = $info['is_virtual'];
+        }
     }
 
     public function addSpecificPrice($product_id, $info)
