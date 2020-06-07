@@ -176,6 +176,22 @@ class ImportDB
         if (isset($info['ecotax'])) {
             $product->ecotax = $info['ecotax'];
         }
+
+        if (isset($info['width'])) {
+            $product->width = $info['width'];
+        }
+
+        if (isset($info['height'])) {
+            $product->height = $info['height'];
+        }
+
+        if (isset($info['depth'])) {
+            $product->depth = $info['depth'];
+        }
+
+        if (isset($info['weight'])) {
+            $product->weight = $info['weight'];
+        }
     }
 
     public function addSpecificPrice($product_id, $info)
