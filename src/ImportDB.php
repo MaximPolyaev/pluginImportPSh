@@ -266,6 +266,10 @@ class ImportDB
         if (isset($info['available_later'])) {
             $product->available_later = $info['available_later'];
         }
+
+        if (isset($info['available_for_order'])) {
+            $product->available_for_order = $info['available_for_order'];
+        }
     }
 
     public function addSpecificPrice($product_id, $info)
