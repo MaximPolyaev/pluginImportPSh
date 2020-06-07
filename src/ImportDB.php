@@ -302,6 +302,10 @@ class ImportDB
                 $product->condition = $info['condition'];
             }
         }
+
+        if (isset($info['customizable'])) {
+            $product->customizable = $info['customizable'];
+        }
     }
 
     public function addSpecificPrice($product_id, $info)
