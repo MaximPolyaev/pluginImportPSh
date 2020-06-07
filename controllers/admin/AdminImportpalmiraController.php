@@ -1,6 +1,7 @@
 <?php
 
 use MaximCode\ImportPalmira\FileReader;
+use MaximCode\ImportPalmira\ImportDB;
 use MaximCode\ImportPalmira\ImportHelper;
 use MaximCode\ImportPalmira\JsonCfg;
 use MaximCode\ImportPalmira\ProgressManager;
@@ -82,6 +83,7 @@ class AdminImportpalmiraController extends ModuleAdminController
         }
 
         $import_data = ImportHelper::optimize_matching($import_data, $import_matches);
+        $importDb = new ImportDB($this, $import_data);
 
         WebHelpers::echoJson(['response' => 'true', 'import_status' => true]);
         die;
@@ -114,5 +116,9 @@ class AdminImportpalmiraController extends ModuleAdminController
             'use_json_errors' => $jsonCfg->getUseErrors()
         ]);
         die;
+    }
+
+    public function getContext() {
+        return $this->context;
     }
 }

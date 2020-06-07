@@ -99,7 +99,7 @@ const testAjax = function () {
     jQuery.ajax({
       type: 'POST',
       url: importpalmira_ajax,
-      dataType: 'json',
+      // dataType: 'json',
       data: {
         ajax: true,
         action: 'testajax',
