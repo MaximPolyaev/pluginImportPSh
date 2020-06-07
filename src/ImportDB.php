@@ -276,6 +276,12 @@ class ImportDB
                 $product->available_date = $info['available_date'];
             }
         }
+
+        if (isset($info['date_add'])) {
+            if (\Validate::isDate($info['date_add'])) {
+                $product->date_add = $info['date_add'];
+            }
+        }
     }
 
     public function addSpecificPrice($product_id, $info)
