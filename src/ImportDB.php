@@ -138,6 +138,13 @@ class ImportDB
             if (isset($data_item['reduction_percent']) && $data_item['reduction_percent']) {
                 $this->addSpecificPrice($product->id, $data_item);
             }
+
+            if (isset($data_item['delete_existing_images'])) {
+                if ($data_item['delete_existing_images'] === '1') {
+                    $product->deleteImages();
+                }
+            }
+
         }
 
         \Tools::clearCache();
