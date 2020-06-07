@@ -8,6 +8,7 @@ use PrestaShop\PrestaShop\Adapter\Entity\Category;
 use PrestaShop\PrestaShop\Adapter\Entity\Manufacturer;
 use PrestaShop\PrestaShop\Adapter\Entity\Product;
 use PrestaShop\PrestaShop\Adapter\Entity\SpecificPrice;
+use PrestaShop\PrestaShop\Adapter\Entity\StockAvailable;
 use PrestaShop\PrestaShop\Adapter\Import\Handler\ProductImportHandler;
 use Symfony\Component\VarDumper\VarDumper;
 
@@ -129,7 +130,10 @@ class ImportDB
                 $product->updateCategories($new_categories);
             }
 
-//            VarDumper::dump($product->id);
+            if (isset($data_item['quantity'])) {
+//                VarDumper::dump($product->getIdProductAttributeMostExpensive());
+                StockAvailable::setQuantity($product->id, 0, $data_item['quantity'], $this->shop_id);
+            }
 
             if (isset($data_item['reduction_percent']) && $data_item['reduction_percent']) {
                 $this->addSpecificPrice($product->id, $data_item);
@@ -192,6 +196,15 @@ class ImportDB
         if (isset($info['weight'])) {
             $product->weight = $info['weight'];
         }
+
+        if (isset($info['delivery_in_stock'])) {
+            $product->delivery_in_stock = $info['delivery_in_stock'];
+        }
+
+        if (isset($info['delivery_out_stock'])) {
+            $product->delivery_out_stock = $info['delivery_out_stock'];
+        }
+
     }
 
     public function addSpecificPrice($product_id, $info)
