@@ -426,6 +426,7 @@
                                             {foreach from=$input.product_fields item=$field}
                                               <option value="{$field->getName()}">{$field->getLabel()}</option>
                                             {/foreach}
+                                            <option value="isbn">ISBN*</option>
                                           </select>
                                         </th>
                                       {/for}

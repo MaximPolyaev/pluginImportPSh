@@ -5,6 +5,7 @@ namespace MaximCode\ImportPalmira;
 
 
 use PrestaShop\PrestaShop\Adapter\Entity\Category;
+use PrestaShop\PrestaShop\Adapter\Entity\Manufacturer;
 use PrestaShop\PrestaShop\Adapter\Entity\Product;
 use PrestaShop\PrestaShop\Adapter\Entity\SpecificPrice;
 use PrestaShop\PrestaShop\Adapter\Import\Handler\ProductImportHandler;
@@ -58,9 +59,41 @@ class ImportDB
 
             $this->addSimpleFields($product, $data_item);
 
-            if (isset($info['supplier_reference'])) {
-//            $product->supplier_reference = 'Applestore';
-                $product->addSupplierReference('1', 0, $info['supplier_reference'], '10', '1');
+            if (isset($data_item['supplier_reference'])) {
+                $product->addSupplierReference('1', 0, $data_item['supplier_reference'] . 'new', '10', '1');
+                $product->supplier_reference = $data_item['supplier_reference'];
+                $product->id_supplier = 1;
+            }
+
+            if (isset($data_item['manufacturer'])) {
+                $product->id_manufacturer = Manufacturer::getIdByName($data_item['manufacturer']) ?? 0;
+            }
+
+            if (isset($data_item['ean13'])) {
+                if (\Validate::isEan13($data_item['ean13'])) {
+                    $product->ean13 = $data_item['ean13'];
+                }
+                /*
+                 * else output error
+                 */
+            }
+
+            if (isset($data_item['upc'])) {
+                if (\Validate::isUpc($data_item['upc'])) {
+                    $product->upc = $data_item['upc'];
+                }
+                /*
+                 * else output error
+                 */
+            }
+
+            if (isset($data_item['isbn'])) {
+                if (\Validate::isIsbn($data_item['isbn'])) {
+                    $product->isbn = $data_item['isbn'];
+                }
+                /*
+                 * else output error
+                 */
             }
 
             if ($is_update) {
