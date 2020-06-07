@@ -135,6 +135,10 @@ class ImportDB
                 StockAvailable::setQuantity($product->id, 0, $data_item['quantity'], $this->shop_id);
             }
 
+            if (isset($data_item['out_of_stock'])) {
+                StockAvailable::setProductOutOfStock($product->id, $data_item['out_of_stock']);
+            }
+
             if (isset($data_item['reduction_percent']) && $data_item['reduction_percent']) {
                 $this->addSpecificPrice($product->id, $data_item);
             }
