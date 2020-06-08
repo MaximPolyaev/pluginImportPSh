@@ -7,9 +7,9 @@ namespace MaximCode\ImportPalmira;
 use PrestaShop\PrestaShop\Adapter\Entity\Category;
 use PrestaShop\PrestaShop\Adapter\Entity\Manufacturer;
 use PrestaShop\PrestaShop\Adapter\Entity\Product;
+use PrestaShop\PrestaShop\Adapter\Entity\Shop;
 use PrestaShop\PrestaShop\Adapter\Entity\SpecificPrice;
 use PrestaShop\PrestaShop\Adapter\Entity\StockAvailable;
-use PrestaShop\PrestaShop\Adapter\Import\Handler\ProductImportHandler;
 use Symfony\Component\VarDumper\VarDumper;
 
 class ImportDB
@@ -46,9 +46,13 @@ class ImportDB
 
     private function import()
     {
-//        VarDumper::dump($this->data);
         foreach ($this->data as $data_item) {
             $is_update = $this->isUpdate($data_item);
+
+            if ($data_item['shop']) {
+                Shop::setContext(Shop::CONTEXT_SHOP, (int) $data_item['shop']);
+                $this->shop_id = (int) $data_item['shop'];
+            }
 
             $product = new Product($data_item['id'] ?? null);
             $product->id_category_default = $this->default_category;
@@ -99,8 +103,10 @@ class ImportDB
 
             if ($is_update) {
                 $product->update();
+                VarDumper::dump('update');
             } else {
                 $product->add();
+                VarDumper::dump('add');
             }
 
             if (isset($data_item['category'])) {
@@ -131,7 +137,6 @@ class ImportDB
             }
 
             if (isset($data_item['quantity'])) {
-//                VarDumper::dump($product->getIdProductAttributeMostExpensive());
                 StockAvailable::setQuantity($product->id, 0, $data_item['quantity'], $this->shop_id);
             }
 
@@ -320,7 +325,6 @@ class ImportDB
         }
 
         if (isset($info['is_virtual'])) {
-            VarDumper::dump($info['is_virtual']);
             $product->is_virtual = $info['is_virtual'];
         }
     }
@@ -407,7 +411,7 @@ class ImportDB
 
     public function deleteAllProducts()
     {
-        $products = Product::getProducts($this->language_id, 0, 0, 'id_product', 'ASC');
+        $products = Product::getProducts($this->language_id, 0, 0, 'id_product', 'ASC', false, false, $this->context);
         foreach ($products as $product) {
             $productObject = new Product($product['id_product']);
             $productObject->delete();
