@@ -49,9 +49,15 @@ class ImportDB
         foreach ($this->data as $data_item) {
             $is_update = $this->isUpdate($data_item);
 
-            if ($data_item['shop']) {
-                Shop::setContext(Shop::CONTEXT_SHOP, (int) $data_item['shop']);
-                $this->shop_id = (int) $data_item['shop'];
+            if (isset($data_item['shop'])) {
+                $shop_id = Shop::getIdByName($data_item['shop']);
+                $data_item['shop'] = (bool) $shop_id ? $shop_id : Shop::getShop((int) $data_item['shop'])['id_shop'];
+                unset($shop_id);
+
+                if ((bool) $data_item['shop']) {
+                    Shop::setContext(Shop::CONTEXT_SHOP, (int) $data_item['shop']);
+                    $this->shop_id = (int) $data_item['shop'];
+                }
             }
 
             $product = new Product($data_item['id'] ?? null);
