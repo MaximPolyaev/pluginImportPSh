@@ -143,11 +143,11 @@ class ImportDB
             }
 
             if (isset($data_item['quantity'])) {
-                StockAvailable::setQuantity($product->id, 0, $data_item['quantity'], $this->shop_id);
+                StockAvailable::setQuantity($product->id, 0, $data_item['quantity'], $this->shop_id, false);
             }
 
             if (isset($data_item['out_of_stock'])) {
-                StockAvailable::setProductOutOfStock($product->id, $data_item['out_of_stock']);
+                StockAvailable::setProductOutOfStock($product->id, $data_item['out_of_stock'], $this->shop_id);
             }
 
             if (isset($data_item['reduction_percent']) && $data_item['reduction_percent']) {
