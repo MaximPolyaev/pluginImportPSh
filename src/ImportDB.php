@@ -38,7 +38,7 @@ class ImportDB
         $this->module = $module;
         $this->context = $this->module->getContext();
         $this->language_id = $this->context->language->id;
-        $this->products = Product::getProducts($this->language_id, 0, 0, 'id_product', 'ASC');
+        $this->products = $this->getProducts();
         $this->default_lang = \Configuration::get('PS_LANG_DEFAULT') ?? 1;
         $this->default_category = \Configuration::get('PS_HOME_CATEGORY') ?? 1;
         $this->shop_id = $this->context->shop->id;
@@ -438,5 +438,24 @@ class ImportDB
 
         $this->context->shop->id = $save_shop_id;
         Shop::setContext($save_shop_context);
+    }
+
+    public function getProducts()
+    {
+        $save_shop_id = $this->context->shop->id;
+        $save_shop_context = Shop::getContext();
+        $shop_ids = Shop::getShops(false, null, true);
+
+        $products = [];
+        foreach ($shop_ids as $shop_id)
+        {
+            Shop::setContext(Shop::CONTEXT_SHOP, (int) $shop_id);
+            $this->context->shop->id = (int) $shop_id;
+            $products = array_merge($products, Product::getProducts($this->language_id, 0, 0, 'id_product', 'ASC', false, false, $this->context));
+        }
+
+        $this->context->shop->id = $save_shop_id;
+        Shop::setContext($save_shop_context);
+        return $products;
     }
 }
