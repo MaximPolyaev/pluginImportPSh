@@ -8,6 +8,7 @@ use PrestaShop\PrestaShop\Adapter\Entity\Category;
 use PrestaShop\PrestaShop\Adapter\Entity\Context;
 use PrestaShop\PrestaShop\Adapter\Entity\Manufacturer;
 use PrestaShop\PrestaShop\Adapter\Entity\Product;
+use PrestaShop\PrestaShop\Adapter\Entity\ProductDownload;
 use PrestaShop\PrestaShop\Adapter\Entity\Shop;
 use PrestaShop\PrestaShop\Adapter\Entity\SpecificPrice;
 use PrestaShop\PrestaShop\Adapter\Entity\StockAvailable;
@@ -156,6 +157,59 @@ class ImportDB
 
             if (isset($data_item['reduction_percent']) && $data_item['reduction_percent']) {
                 $this->addSpecificPrice($product->id, $data_item);
+            }
+
+            if (isset($data_item['nb_downloadable'])) {
+                if ($data_item['nb_downloadable']) {
+                    $download_is_update = (bool) ProductDownload::getFilenameFromIdProduct($product->id);
+                    $productDownload = new ProductDownload($download_is_update ? $product->id : null);
+
+                    $productDownload->nb_downloadable = (int) $data_item['nb_downloadable'];
+
+
+                    if ($download_is_update) {
+                        $productDownload->update();
+                    } else {
+                        $productDownload->add();
+                    }
+                }
+            }
+
+            if (isset($data_item['nb_days_accessible'])) {
+                if ($data_item['nb_days_accessible']) {
+                    $download_is_update = (bool) ProductDownload::getFilenameFromIdProduct($product->id);
+                    $productDownload = new ProductDownload($download_is_update ? $product->id : null);
+
+                    $productDownload->nb_downloadable = (int) $data_item['nb_days_accessible'];
+
+                    if ($download_is_update) {
+                        $productDownload->update();
+                    } else {
+                        $productDownload->add();
+                    }
+                }
+            }
+
+            if (isset($data_item['date_expiration'])) {
+                if (\Validate::isDate($data_item['date_expiration'])) {
+                    $download_is_update = (bool) ProductDownload::getFilenameFromIdProduct($product->id);
+                    $productDownload = new ProductDownload($download_is_update ? $product->id : null);
+
+                    $productDownload->date_expiration = $data_item['date_expiration'];
+
+                    if ($download_is_update) {
+                        $productDownload->update();
+                    } else {
+                        $productDownload->add();
+                    }
+                }
+            }
+
+            if ($product->id == 2) {
+                $productDownload = new ProductDownload($product->id);
+                $productDownload->id_product = $product->id;
+                $productDownload->add();
+
             }
 
             if (isset($data_item['delete_existing_images'])) {
