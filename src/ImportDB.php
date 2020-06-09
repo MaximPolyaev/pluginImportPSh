@@ -5,6 +5,7 @@ namespace MaximCode\ImportPalmira;
 
 
 use PrestaShop\PrestaShop\Adapter\Entity\Category;
+use PrestaShop\PrestaShop\Adapter\Entity\Context;
 use PrestaShop\PrestaShop\Adapter\Entity\Manufacturer;
 use PrestaShop\PrestaShop\Adapter\Entity\Product;
 use PrestaShop\PrestaShop\Adapter\Entity\Shop;
@@ -16,6 +17,9 @@ class ImportDB
 {
     private $data;
     private $data_length;
+    /**
+     * @var Context
+     */
     private $context;
     private $module;
     private $shop_id;
@@ -417,10 +421,22 @@ class ImportDB
 
     public function deleteAllProducts()
     {
-        $products = Product::getProducts($this->language_id, 0, 0, 'id_product', 'ASC', false, false, $this->context);
-        foreach ($products as $product) {
-            $productObject = new Product($product['id_product']);
-            $productObject->delete();
+        $save_shop_id = $this->context->shop->id;
+        $save_shop_context = Shop::getContext();
+        $shop_ids = Shop::getShops(false, null, true);
+
+        foreach ($shop_ids as $shop_id) {
+            Shop::setContext(Shop::CONTEXT_SHOP, (int) $shop_id);
+            $this->context->shop->id = (int) $shop_id;
+            $products = Product::getProducts($this->language_id, 0, 0, 'id_product', 'ASC', false, false, $this->context);
+
+            foreach ($products as $product) {
+                $productObject = new Product($product['id_product'], true);
+                $productObject->delete();
+            }
         }
+
+        $this->context->shop->id = $save_shop_id;
+        Shop::setContext($save_shop_context);
     }
 }
