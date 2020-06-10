@@ -6,6 +6,8 @@ namespace MaximCode\ImportPalmira;
 
 use PrestaShop\PrestaShop\Adapter\Entity\Category;
 use PrestaShop\PrestaShop\Adapter\Entity\Context;
+use PrestaShop\PrestaShop\Adapter\Entity\Feature;
+use PrestaShop\PrestaShop\Adapter\Entity\FeatureValue;
 use PrestaShop\PrestaShop\Adapter\Entity\Manufacturer;
 use PrestaShop\PrestaShop\Adapter\Entity\Product;
 use PrestaShop\PrestaShop\Adapter\Entity\ProductDownload;
@@ -223,6 +225,25 @@ class ImportDB
 
                     $product->deleteAccessories();
                     $product->changeAccessories($enumeration_arr);
+                }
+            }
+
+            if (isset($data_item['features'])) {
+                if ($data_item['features']) {
+                    $feature_str = self::getEnumerationString($data_item['features']);
+                    $feature = self::convertEnumerationStrToArray($feature_str, ':');
+
+                    $feature_name = isset($feature[0]) ? $feature[0] : '';
+                    $feature_value = isset($feature[1]) ? $feature[1] : '';
+                    $position = isset($feature[2]) ? (int) $feature[2] : false;
+                    $custom = isset($feature[3]) ? (int) $feature[3] : false;
+
+                    if (!empty($feature_name) && !empty($feature_value)) {
+                        $id_feature = (int) Feature::addFeatureImport($feature_name, $position);
+                        $id_feature_value = (int) FeatureValue::addFeatureValueImport($id_feature, $feature_value, $product->id, $this->language_id, $custom);
+                        Product::addFeatureProductImport($product->id, $id_feature, $id_feature_value);
+                        Feature::cleanPositions();
+                    }
                 }
             }
 
@@ -486,11 +507,11 @@ class ImportDB
         return $result['str'] ?? false;
     }
 
-    public static function convertEnumerationStrToArray($str)
+    public static function convertEnumerationStrToArray($str, $delimiter = ',')
     {
         $arr = array_map(function ($item) {
             return trim($item);
-        }, explode(',', $str));
+        }, explode($delimiter, $str));
 
         return $arr;
     }
