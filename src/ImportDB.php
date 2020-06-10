@@ -161,13 +161,13 @@ class ImportDB
 
             if (isset($data_item['nb_downloadable'])) {
                 if ($data_item['nb_downloadable']) {
-                    $download_is_update = (bool) ProductDownload::getFilenameFromIdProduct($product->id);
-                    $productDownload = new ProductDownload($download_is_update ? $product->id : null);
+                    $product_download_id = ProductDownload::getIdFromIdProduct($product->id);
+                    $productDownload = new ProductDownload((bool) $product_download_id ? $product_download_id : null);
 
                     $productDownload->nb_downloadable = (int) $data_item['nb_downloadable'];
+                    $productDownload->date_expiration = '';
 
-
-                    if ($download_is_update) {
+                    if ((bool) $product_download_id) {
                         $productDownload->update();
                     } else {
                         $productDownload->add();
@@ -177,12 +177,13 @@ class ImportDB
 
             if (isset($data_item['nb_days_accessible'])) {
                 if ($data_item['nb_days_accessible']) {
-                    $download_is_update = (bool) ProductDownload::getFilenameFromIdProduct($product->id);
-                    $productDownload = new ProductDownload($download_is_update ? $product->id : null);
+                    $product_download_id = ProductDownload::getIdFromIdProduct($product->id);
+                    $productDownload = new ProductDownload((bool) $product_download_id ? $product_download_id : null);
 
-                    $productDownload->nb_downloadable = (int) $data_item['nb_days_accessible'];
+                    $productDownload->nb_days_accessible = (int) $data_item['nb_days_accessible'];
+                    $productDownload->date_expiration = '';
 
-                    if ($download_is_update) {
+                    if ((bool) $product_download_id) {
                         $productDownload->update();
                     } else {
                         $productDownload->add();
@@ -192,12 +193,12 @@ class ImportDB
 
             if (isset($data_item['date_expiration'])) {
                 if (\Validate::isDate($data_item['date_expiration'])) {
-                    $download_is_update = (bool) ProductDownload::getFilenameFromIdProduct($product->id);
-                    $productDownload = new ProductDownload($download_is_update ? $product->id : null);
+                    $product_download_id = ProductDownload::getIdFromIdProduct($product->id);
+                    $productDownload = new ProductDownload((bool) $product_download_id ? $product_download_id : null);
 
                     $productDownload->date_expiration = $data_item['date_expiration'];
 
-                    if ($download_is_update) {
+                    if ((bool) $product_download_id) {
                         $productDownload->update();
                     } else {
                         $productDownload->add();
