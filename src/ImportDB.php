@@ -382,6 +382,14 @@ class ImportDB
         if (isset($info['is_virtual'])) {
             $product->is_virtual = $info['is_virtual'];
         }
+
+        if (isset($info['advanced_stock_management'])) {
+            $product->advanced_stock_management = (int) $info['advanced_stock_management'];
+        }
+
+        if (isset($info['depends_on_stock'])) {
+            $product->depends_on_stock = (int) $info['depends_on_stock'];
+        }
     }
 
     public function addSpecificPrice($product_id, $info)
