@@ -14,6 +14,7 @@ use PrestaShop\PrestaShop\Adapter\Entity\ProductDownload;
 use PrestaShop\PrestaShop\Adapter\Entity\Shop;
 use PrestaShop\PrestaShop\Adapter\Entity\SpecificPrice;
 use PrestaShop\PrestaShop\Adapter\Entity\StockAvailable;
+use PrestaShop\PrestaShop\Adapter\Entity\Tag;
 use Symfony\Component\VarDumper\VarDumper;
 
 class ImportDB
@@ -48,6 +49,7 @@ class ImportDB
         $this->currency_id = $this->context->currency->id;
         $this->country_id = $this->context->country->id;
 
+//        $this->deleteAllProducts();
         $this->import();
     }
 
@@ -245,6 +247,11 @@ class ImportDB
                         Feature::cleanPositions();
                     }
                 }
+            }
+
+            if (isset($data_item['tags'])) {
+                Tag::deleteTagsForProduct($product->id);
+                Tag::addTags($this->language_id, $product->id, $data_item['tags']);
             }
 
             if (isset($data_item['delete_existing_images'])) {
