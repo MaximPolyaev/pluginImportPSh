@@ -203,6 +203,29 @@ class ImportDB
                  */
             }
 
+            if (isset($data_item['accessories'])) {
+                if ($enumeration_str = self::getEnumerationString($data_item['accessories'])) {
+                    $enumeration_arr = self::convertEnumerationStrToArray($enumeration_str);
+                    $enumeration_arr = array_map(function ($enum) use ($product) {
+                        foreach ($this->products as $p) {
+                            if (($enum === $p['id_product'] || $enum == $p['name']) &&
+                                ($this->shop_id === (int) $p['id_shop']) &&
+                                $p['id_product'] !== $product->id) {
+
+                                return (int) $p['id_product'];
+                            }
+                        }
+                        return null;
+                    }, $enumeration_arr);
+                    $enumeration_arr = array_values(array_filter($enumeration_arr, function ($enum) {
+                        return $enum !== null;
+                    }));
+
+                    $product->deleteAccessories();
+                    $product->changeAccessories($enumeration_arr);
+                }
+            }
+
             if (isset($data_item['delete_existing_images'])) {
                 if ($data_item['delete_existing_images'] === '1') {
                     $product->deleteImages();
