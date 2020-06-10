@@ -56,12 +56,12 @@ class ImportDB
 
             if (isset($data_item['shop'])) {
                 $shop_id = Shop::getIdByName($data_item['shop']);
-                $data_item['shop'] = (bool) $shop_id ? $shop_id : Shop::getShop((int) $data_item['shop'])['id_shop'];
+                $data_item['shop'] = (bool)$shop_id ? $shop_id : Shop::getShop((int)$data_item['shop'])['id_shop'];
                 unset($shop_id);
 
-                if ((bool) $data_item['shop']) {
-                    Shop::setContext(Shop::CONTEXT_SHOP, (int) $data_item['shop']);
-                    $this->shop_id = (int) $data_item['shop'];
+                if ((bool)$data_item['shop']) {
+                    Shop::setContext(Shop::CONTEXT_SHOP, (int)$data_item['shop']);
+                    $this->shop_id = (int)$data_item['shop'];
                 }
             }
 
@@ -159,58 +159,48 @@ class ImportDB
                 $this->addSpecificPrice($product->id, $data_item);
             }
 
-            if (isset($data_item['nb_downloadable'])) {
-                if ($data_item['nb_downloadable']) {
+            if (isset($data_item['nb_downloadable']) ||
+                isset($data_item['nb_days_accessible']) ||
+                isset($data_item['file_url']) ||
+                (
+                    isset($data_item['date_expiration']) &&
+                    \Validate::isDate($data_item['date_expiration'])
+                )) {
+                if ($product->is_virtual) {
                     $product_download_id = ProductDownload::getIdFromIdProduct($product->id);
                     $productDownload = new ProductDownload((bool) $product_download_id ? $product_download_id : null);
 
-                    $productDownload->nb_downloadable = (int) $data_item['nb_downloadable'];
-                    $productDownload->date_expiration = '';
+                    if (isset($data_item['nb_downloadable'])) {
+                        $productDownload->nb_downloadable = $data_item['nb_downloadable'];
+                    }
+
+                    if (isset($data_item['nb_days_accessible'])) {
+                        $productDownload->nb_days_accessible = $data_item['nb_days_accessible'];
+                    }
+
+                    if (isset($data_item['date_expiration']) && \Validate::isDate($data_item['date_expiration'])) {
+                        $productDownload->date_expiration = $data_item['date_expiration'];
+                    } else if (strtotime($productDownload->date_expiration) === strtotime('0000-00-00') ||
+                        (bool) $product_download_id) {
+                        $productDownload->date_expiration = '';
+                    }
+
+                    if (isset($data_item['file_url']) && \Validate::isUrl($data_item['file_url'])) {
+                        $productDownload->filename = ProductDownload::getNewFilename();
+                        \Tools::copy($data_item['file_url'], _PS_DOWNLOAD_DIR_ . $productDownload->filename);
+                        $productDownload->display_filename = basename($data_item['file_url']);
+                    }
 
                     if ((bool) $product_download_id) {
                         $productDownload->update();
                     } else {
+                        $productDownload->id_product = (int) $product->id;
                         $productDownload->add();
                     }
                 }
-            }
-
-            if (isset($data_item['nb_days_accessible'])) {
-                if ($data_item['nb_days_accessible']) {
-                    $product_download_id = ProductDownload::getIdFromIdProduct($product->id);
-                    $productDownload = new ProductDownload((bool) $product_download_id ? $product_download_id : null);
-
-                    $productDownload->nb_days_accessible = (int) $data_item['nb_days_accessible'];
-                    $productDownload->date_expiration = '';
-
-                    if ((bool) $product_download_id) {
-                        $productDownload->update();
-                    } else {
-                        $productDownload->add();
-                    }
-                }
-            }
-
-            if (isset($data_item['date_expiration'])) {
-                if (\Validate::isDate($data_item['date_expiration'])) {
-                    $product_download_id = ProductDownload::getIdFromIdProduct($product->id);
-                    $productDownload = new ProductDownload((bool) $product_download_id ? $product_download_id : null);
-
-                    $productDownload->date_expiration = $data_item['date_expiration'];
-
-                    if ((bool) $product_download_id) {
-                        $productDownload->update();
-                    } else {
-                        $productDownload->add();
-                    }
-                }
-            }
-
-            if ($product->id == 2) {
-                $productDownload = new ProductDownload($product->id);
-                $productDownload->id_product = $product->id;
-                $productDownload->add();
-
+                /*
+                 * else output error
+                 */
             }
 
             if (isset($data_item['delete_existing_images'])) {
@@ -481,8 +471,8 @@ class ImportDB
         $shop_ids = Shop::getShops(false, null, true);
 
         foreach ($shop_ids as $shop_id) {
-            Shop::setContext(Shop::CONTEXT_SHOP, (int) $shop_id);
-            $this->context->shop->id = (int) $shop_id;
+            Shop::setContext(Shop::CONTEXT_SHOP, (int)$shop_id);
+            $this->context->shop->id = (int)$shop_id;
             $products = Product::getProducts($this->language_id, 0, 0, 'id_product', 'ASC', false, false, $this->context);
 
             foreach ($products as $product) {
@@ -502,10 +492,9 @@ class ImportDB
         $shop_ids = Shop::getShops(false, null, true);
 
         $products = [];
-        foreach ($shop_ids as $shop_id)
-        {
-            Shop::setContext(Shop::CONTEXT_SHOP, (int) $shop_id);
-            $this->context->shop->id = (int) $shop_id;
+        foreach ($shop_ids as $shop_id) {
+            Shop::setContext(Shop::CONTEXT_SHOP, (int)$shop_id);
+            $this->context->shop->id = (int)$shop_id;
             $products = array_merge($products, Product::getProducts($this->language_id, 0, 0, 'id_product', 'ASC', false, false, $this->context));
         }
 
