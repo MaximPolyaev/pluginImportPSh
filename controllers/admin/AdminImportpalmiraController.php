@@ -5,16 +5,15 @@ use MaximCode\ImportPalmira\ImportDB;
 use MaximCode\ImportPalmira\ImportHelper;
 use MaximCode\ImportPalmira\JsonCfg;
 use MaximCode\ImportPalmira\ProgressManager;
+use MaximCode\ImportPalmira\SessionHelper;
 use MaximCode\ImportPalmira\TaskHelper;
 use MaximCode\ImportPalmira\WebHelpers;
+use PrestaShop\PrestaShop\Adapter\Entity\Product;
 use Symfony\Component\VarDumper\VarDumper;
 
 
 class AdminImportpalmiraController extends ModuleAdminController
 {
-    const STEP_COUNT = 60;
-    const STEP_DELAY = 200000;
-
     public function init()
     {
         parent::init();
@@ -29,7 +28,7 @@ class AdminImportpalmiraController extends ModuleAdminController
     {
         $progress = ProgressManager::getProgress();
         if ($progress !== null)
-            WebHelpers::echoJson(['progress' => $progress]);
+            WebHelpers::echoJson(['progress' => $progress, 'session' => isset($_SESSION) ? $_SESSION : null]);
         else
             WebHelpers::echoJson([]);
 
@@ -45,21 +44,49 @@ class AdminImportpalmiraController extends ModuleAdminController
 
     public function ajaxProcessLongProgress()
     {
-        $task_id = TaskHelper::getTaskId();
-        if ($task_id === null)
-            return;
-
         set_time_limit(0);
+        $start_time = microtime(true);
 
-        $manager = new ProgressManager($task_id);
-        $manager->setStepCount(self::STEP_COUNT);
-
-        for ($i = 0; $i !== self::STEP_COUNT; ++$i) {
-            $manager->incrementProgress();
-            usleep(self::STEP_DELAY);
+        $task_id = TaskHelper::getTaskId();
+        if ($task_id === null) {
+            return;
         }
 
-        WebHelpers::echoJson(['endlongprogress' => true]);
+        $current_progress = \Tools::getValue('progress_percent');
+        $manager = new ProgressManager($task_id, $current_progress);
+        $products = Product::getProducts($this->context->language->id, 0, 0, 'id_product', 'DESC', false, false, $this->context);
+        $manager->setStepCount(count($products), count($products) * $current_progress * 0.01);
+//        for ($i = 0; $i !== $step_count; ++$i) {
+//            $manager->incrementProgress();
+//            usleep($step_delay);
+//        }
+
+        foreach ($products as $product) {
+            if (isset($product['id_product'])) {
+                $productObject = new Product($product['id_product'], true);
+                $productObject->delete();
+
+                $manager->incrementProgress();
+
+                $end_time = microtime(true) - $start_time;
+                if ($end_time > 10) {
+                    WebHelpers::echoJson([
+                        'endlongprogress' => true,
+                        'endtime' => $end_time,
+                        'status_progress' => 'next',
+                        'current_progress' => SessionHelper::get('progress' . $task_id),
+                        'session' => $_SESSION
+                    ]);
+                    exit;
+                }
+            }
+        }
+
+        WebHelpers::echoJson([
+            'endlongprogress' => true,
+            'endtime' => microtime(true) - $start_time,
+            'status_progress' => 'end'
+        ]);
         exit;
     }
 

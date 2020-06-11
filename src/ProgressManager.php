@@ -16,19 +16,19 @@ class ProgressManager
     private $session_initializer;
 
     //Создание менеджера прогресса для задачи с идентификатором $task_id
-    public function __construct($task_id)
+    public function __construct($task_id, $current_step = -1)
     {
         $this->session_initializer = new SessionInitializer;
         $this->task_id = $task_id;
-        SessionHelper::set('progress' . $this->task_id, 0);
+        SessionHelper::set('progress' . $this->task_id, $current_step < 0 ? 0 : $current_step);
         SessionHelper::close();
     }
 
     //Установка количества шагов прогресса
-    public function setStepCount($step_count)
+    public function setStepCount($step_count, $current_step = -1)
     {
         $this->step_count = $step_count;
-        $this->current_step = 0;
+        $this->current_step = $current_step < 0 ? 0 : $current_step;
     }
 
     //Увеличение прогресса на 1 (переход к следующему шагу)
@@ -49,7 +49,7 @@ class ProgressManager
     public function __destruct()
     {
         SessionHelper::init();
-        SessionHelper::remove('progress' . $this->task_id);
+//        SessionHelper::remove('progress' . $this->task_id);
     }
 
     //Получение значения прогресса для идентификатора задачи, переданного клиентом
