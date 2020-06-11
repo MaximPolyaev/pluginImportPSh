@@ -211,4 +211,5 @@
   background-size: 40px;
   border-radius: 5px;
   animation: importpalmira_move 1s linear infinite;
+  transition: ease-in 1s;
 }

@@ -19,6 +19,7 @@ use PrestaShop\PrestaShop\Adapter\Entity\Shop;
 use PrestaShop\PrestaShop\Adapter\Entity\SpecificPrice;
 use PrestaShop\PrestaShop\Adapter\Entity\StockAvailable;
 use PrestaShop\PrestaShop\Adapter\Entity\Tag;
+use PrestaShop\PrestaShop\Core\Foundation\IoC\Exception;
 use Symfony\Component\VarDumper\VarDumper;
 
 class ImportDB
@@ -53,8 +54,11 @@ class ImportDB
         $this->currency_id = $this->context->currency->id;
         $this->country_id = $this->context->country->id;
 
-//        $this->deleteAllProducts();
-        $this->import();
+        $shops_ids = array_values(Shop::getShops(false, null, true));
+        Shop::setContext(Shop::CONTEXT_SHOP, $shops_ids[0]);
+
+        $this->deleteAllProducts();
+//        $this->import();
     }
 
     private function import()
@@ -75,7 +79,8 @@ class ImportDB
 
             $product = new Product($data_item['id'] ?? null);
             $product->id_category_default = $this->default_category;
-            $product->force_id = true;
+//            $product->force_id = true;
+
 
             if (isset($data_item['id'])) {
                 $product->id = $data_item['id'];
@@ -120,12 +125,15 @@ class ImportDB
                  */
             }
 
+
             if ($is_update) {
                 $product->update();
-                VarDumper::dump('update');
             } else {
-                $product->add();
-                VarDumper::dump('add');
+                try {
+                    $product->add();
+                } catch (\Exception $e) {
+                    VarDumper::dump($e->getMessage());
+                }
             }
 
             if (isset($data_item['category'])) {
@@ -204,6 +212,7 @@ class ImportDB
                     } else {
                         $productDownload->id_product = (int) $product->id;
                         $productDownload->add();
+
                     }
                 }
                 /*
@@ -325,7 +334,7 @@ class ImportDB
         }
 
         if (isset($info['price_tex'])) {
-            $product->price = $info['price_tex'];
+            $product->price = (float) $info['price_tex'];
         }
 
         if (isset($info['id_tax_rules_group'])) {

@@ -69,21 +69,21 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   console.log('test');
-  // jQuery.ajax({
-  //   type: 'POST',
-  //   headers: {'cache-control': 'no-cache'},
-  //   url: importpalmira_ajax,
-  //   dataType: 'json',
-  //   data: {
-  //     ajax: true,
-  //     action: 'progressnew',
-  //     new_task: 1
-  //   },
-  //   success: function (data) {
-  //     console.log('progress_long', data);
-  //     runTask(data.task);
-  //   }
-  // });
+  jQuery.ajax({
+    type: 'POST',
+    headers: {'cache-control': 'no-cache'},
+    url: importpalmira_ajax,
+    dataType: 'json',
+    data: {
+      ajax: true,
+      action: 'progressnew',
+      new_task: 1
+    },
+    success: function (data) {
+      console.log('progress_long', data);
+      runTask(data.task);
+    }
+  });
 
   function setProgress(value) {
     document.getElementById('importpalmira_progress_view').style.width = value + '%';

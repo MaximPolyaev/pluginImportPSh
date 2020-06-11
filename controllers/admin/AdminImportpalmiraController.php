@@ -65,6 +65,7 @@ class AdminImportpalmiraController extends ModuleAdminController
 
     public function ajaxProcessTestAjax()
     {
+        set_time_limit(0);
         $import_file_path = Tools::getValue('importpalmira_import_file_path');
 
         $fileReader = (new FileReader($import_file_path))->init();
