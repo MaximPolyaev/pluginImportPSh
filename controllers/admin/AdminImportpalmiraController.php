@@ -27,8 +27,13 @@ class AdminImportpalmiraController extends ModuleAdminController
     public function ajaxProcessGetProgress()
     {
         $progress = ProgressManager::getProgress();
+        $count_products = count(Product::getProducts($this->context->language->id, 0, 0, 'id_product', 'DESC', false, false, $this->context));
         if ($progress !== null)
-            WebHelpers::echoJson(['progress' => $progress, 'session' => isset($_SESSION) ? $_SESSION : null]);
+            WebHelpers::echoJson([
+                'progress' => $progress,
+                'session' => isset($_SESSION) ? $_SESSION : null,
+                'count_products' => $count_products
+            ]);
         else
             WebHelpers::echoJson([]);
 
@@ -53,9 +58,9 @@ class AdminImportpalmiraController extends ModuleAdminController
         }
 
         $current_progress = \Tools::getValue('progress_percent');
-        $manager = new ProgressManager($task_id, $current_progress);
+        $manager = new ProgressManager($task_id);
         $products = Product::getProducts($this->context->language->id, 0, 0, 'id_product', 'DESC', false, false, $this->context);
-        $manager->setStepCount(count($products), count($products) * $current_progress * 0.01);
+        $manager->setStepCount(count($products));
 //        for ($i = 0; $i !== $step_count; ++$i) {
 //            $manager->incrementProgress();
 //            usleep($step_delay);
@@ -64,9 +69,10 @@ class AdminImportpalmiraController extends ModuleAdminController
         foreach ($products as $product) {
             if (isset($product['id_product'])) {
                 $productObject = new Product($product['id_product'], true);
-                $productObject->delete();
+//                $productObject->delete();
 
                 $manager->incrementProgress();
+                usleep(1000000 * 2);
 
                 $end_time = microtime(true) - $start_time;
                 if ($end_time > 10) {
@@ -99,7 +105,7 @@ class AdminImportpalmiraController extends ModuleAdminController
 
         $import_matches = Tools::getValue('importpalmira_type_value');
         $import_headers = $fileReader->getHeaders() ?? 'error';
-        $import_data = $fileReader->getData() ?? 'error';
+        $import_data = $fileReader->getData(0, 100) ?? 'error';
 
         if ($import_headers === 'error' || $import_data === 'error') {
             WebHelpers::echoJson([

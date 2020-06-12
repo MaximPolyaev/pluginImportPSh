@@ -58,7 +58,7 @@ class ImportDB
         Shop::setContext(Shop::CONTEXT_SHOP, $shops_ids[0]);
 
 //        $this->deleteAllProducts();
-//        $this->import();
+        $this->import();
     }
 
     private function import()
