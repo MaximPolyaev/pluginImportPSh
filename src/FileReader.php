@@ -30,9 +30,10 @@ class FileReader
         return $this;
     }
 
-    public function init($delimiter = ";", $str_length = 2000)
+    public function init($str_length = 2000)
     {
-        $this->delimiter = $delimiter;
+        $post_delimiter = \Tools::getValue('IMPORTPALMIRA_CSV_SEPARATOR');
+        $this->delimiter = $post_delimiter ? $post_delimiter : ';';
         $this->str_length = $str_length;
 
         if (!$this->isExists($this->file_path)) {
