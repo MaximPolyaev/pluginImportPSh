@@ -32,7 +32,7 @@ class AdminImportpalmiraController extends ModuleAdminController
             WebHelpers::echoJson([
                 'progress' => $progress,
                 'session' => isset($_SESSION) ? $_SESSION : null,
-                'count_products' => $count_products
+                'remaining_progress_num' => $count_products
             ]);
         else
             WebHelpers::echoJson([]);
@@ -42,8 +42,23 @@ class AdminImportpalmiraController extends ModuleAdminController
 
     public function ajaxProcessProgressNew()
     {
-        WebHelpers::echoJson(['task' => TaskHelper::generateTaskId()]);
+        $products = Product::getProducts(
+            $this->context->language->id,
+            0,
+            0,
+            'id_product',
+            'DESC',
+            false,
+            false,
+            $this->context
+        );
 
+        $full_progress_count = count($products);
+
+        WebHelpers::echoJson([
+            'task' => TaskHelper::generateTaskId(),
+            'full_progress_count' => $full_progress_count
+        ]);
         exit;
     }
 
@@ -57,22 +72,16 @@ class AdminImportpalmiraController extends ModuleAdminController
             return;
         }
 
-        $current_progress = \Tools::getValue('progress_percent');
         $manager = new ProgressManager($task_id);
         $products = Product::getProducts($this->context->language->id, 0, 0, 'id_product', 'DESC', false, false, $this->context);
         $manager->setStepCount(count($products));
-//        for ($i = 0; $i !== $step_count; ++$i) {
-//            $manager->incrementProgress();
-//            usleep($step_delay);
-//        }
 
         foreach ($products as $product) {
             if (isset($product['id_product'])) {
                 $productObject = new Product($product['id_product'], true);
-//                $productObject->delete();
+                $productObject->delete();
 
                 $manager->incrementProgress();
-                usleep(1000000 * 2);
 
                 $end_time = microtime(true) - $start_time;
                 if ($end_time > 10) {
@@ -105,7 +114,7 @@ class AdminImportpalmiraController extends ModuleAdminController
 
         $import_matches = Tools::getValue('importpalmira_type_value');
         $import_headers = $fileReader->getHeaders() ?? 'error';
-        $import_data = $fileReader->getData(0, 100) ?? 'error';
+        $import_data = $fileReader->getData(0, 400) ?? 'error';
 
         if ($import_headers === 'error' || $import_data === 'error') {
             WebHelpers::echoJson([
@@ -117,6 +126,8 @@ class AdminImportpalmiraController extends ModuleAdminController
         }
 
         $import_data = ImportHelper::optimize_matching($import_data, $import_matches);
+
+        VarDumper::dump($import_data);
         $importDb = new ImportDB($this, $import_data);
 
         WebHelpers::echoJson(['response' => 'true', 'import_status' => true]);

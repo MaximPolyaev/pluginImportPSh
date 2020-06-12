@@ -61,7 +61,7 @@
       <p>Кол-во продуктов: <span id="importpalmira-num-products"></span></p>
     </div>
     <div class="div">
-      <h2 style="font-size: 4rem; text-align: center">Загрзка товаров...<span id="importpalmira_progress_txt">0 %</span></h2>
+      <h2 style="font-size: 4rem; text-align: center"><span id="importpalmira_progress_msg">Загрзка товаров...</span><span id="importpalmira_progress_txt">0 %</span></h2>
       <div class="importpalmira-progress">
         <div class="importpalmira-progress_view" id="importpalmira_progress_view" style="width: 0"></div>
       </div>

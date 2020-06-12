@@ -30,7 +30,7 @@ class LongTask {
   is_progress_end = true;
   finishedTasks = [];
 
-  startLongTask = (task_id, current_percent = -1) => {
+  startLongTask = (task_id) => {
     jQuery.ajax({
       type: 'POST',
       headers: {'cache-control': 'no-cache'},
@@ -39,14 +39,13 @@ class LongTask {
       data: {
         ajax: true,
         action: 'longprogress',
-        task: task_id,
-        progress_percent: current_percent
+        task: task_id
       },
       success: (data) => {
         if (data.status_progress !== undefined) {
-          if (data.status_progress === 'next' && data.current_progress !== undefined) {
+          if (data.status_progress === 'next') {
             console.log('start long task next, id:', task_id);
-            this.startLongTask(task_id, data.current_progress);
+            this.startLongTask(task_id);
           }
 
           if (data.status_progress === 'end') {
@@ -77,14 +76,14 @@ class LongTask {
         if (jQuery.inArray(task_id, this.finishedTasks) != -1) {
           console.log('monitor progress, finish task id:', task_id);
           this.is_progress_end = true;
-          this.setProgress(100);
+          this.setProgress(100, false);
           return;
         }
 
-        if (data.progress !== undefined) {
+        if (data.progress !== undefined && data.remaining_progress_num) {
           console.log('monitor progress, set progress', data.progress);
           console.log('monitor progress, set progress for task id:', task_id);
-          this.setProgress(data.progress);
+          this.setProgress(data.remaining_progress_num);
         }
 
         setTimeout( () => {
@@ -101,6 +100,8 @@ class LongTask {
     this.is_progress_end = false;
     this.type_task = type_task;
 
+    this.setOperationMessage();
+
     jQuery.ajax({
       type: 'POST',
       headers: {'cache-control': 'no-cache'},
@@ -112,6 +113,11 @@ class LongTask {
       },
       success: (data) => {
         console.log('run task, data:', data);
+
+        if (data.full_progress_count !== undefined) {
+          this.full_progress_count = data.full_progress_count;
+        }
+
         if (data.task !== undefined) {
           this.startLongTask(data.task);
           this.monitorProgress(data.task);
@@ -120,11 +126,26 @@ class LongTask {
     });
   };
 
-  setProgress = (value) => {
+  setProgress = (value, is_remaining_pgs_num = true) => {
     const progressTxt = jQuery('#importpalmira_progress_txt');
-    document.getElementById('importpalmira_progress_view').style.width = value + '%';
-    progressTxt.html(value + '%');
+
+    let progress_value = value;
+
+    if (this.full_progress_count === value) {
+      progress_value = 0;
+    } else if (is_remaining_pgs_num) {
+      progress_value = (this.full_progress_count - value) / (this.full_progress_count * 0.01);
+    }
+
+    document.getElementById('importpalmira_progress_view').style.width = progress_value + '%';
+    progressTxt.html(progress_value + '%');
   }
+
+  setOperationMessage = () => {
+    if (this.type_task === 'delete_all_products') {
+      jQuery('#importpalmira_progress_msg').text(importpalmira_msg_delete_products);
+    }
+  };
 
   ajaxErrorCallback = (jqXHR, testStatus, errorThrown) => {
     console.log(errorThrown);

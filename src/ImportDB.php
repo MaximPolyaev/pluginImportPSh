@@ -129,11 +129,8 @@ class ImportDB
             if ($is_update) {
                 $product->update();
             } else {
-                try {
-                    $product->add();
-                } catch (\Exception $e) {
-                    VarDumper::dump($e->getMessage());
-                }
+                VarDumper::dump('dump add');
+                $product->add();
             }
 
             if (isset($data_item['category'])) {
