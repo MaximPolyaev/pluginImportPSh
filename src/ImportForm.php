@@ -243,6 +243,14 @@ class ImportForm
                     'name' => 'IMPORTPALMIRA_IMPORT_FILE_PATH'
                 ],
                 [
+                    'type' => 'hidden',
+                    'name' => 'IMPORTPALMIRA_CSV_SEPARATOR'
+                ],
+                [
+                    'type' => 'hidden',
+                    'name' => 'IMPORTPALMIRA_REFERENCE_KEY'
+                ],
+                [
                     'type' => 'text_save',
                     'label' => $this->translate('Save your data matching configuration'),
                     'name' => 'IMPORTPALMIRA_NAME_CFG',
