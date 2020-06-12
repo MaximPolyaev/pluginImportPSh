@@ -30,9 +30,6 @@
     <div class="mp-step active">
       <div class="mp-step-circle"><span>1</span></div>
       <div class="mp-step-title">{l s='Upload your file' d='Modules.Importpalmira.Step'}</div>
-      <div class="mp-step-optional mp-error-optional">{l s='Error' d='Modules.Importpalmira.Step'}<i
-                class="material-icons">error_outline</i>
-      </div>
       <div class="mp-step-bar-left"></div>
       <div class="mp-step-bar-right"></div>
     </div>
@@ -57,22 +54,18 @@
       <button id="btntestajax">btn-test-ajax</button>
       <button id="btnstartprogress">Btn start progress</button>
     </div>
-    <div class="div">
-      <p>Кол-во продуктов: <span id="importpalmira-num-products"></span></p>
-    </div>
-    <div class="div">
+    <div id="importpalmira-progress_div">
       <h2 style="font-size: 4rem; text-align: center"><span id="importpalmira_progress_msg">Загрзка товаров...</span><span id="importpalmira_progress_txt">0 %</span></h2>
       <div class="importpalmira-progress">
         <div class="importpalmira-progress_view" id="importpalmira_progress_view" style="width: 0"></div>
       </div>
     </div>
 
-
-
-
-{*    <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">*}
-{*      <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>*}
-{*      <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>*}
-{*    </svg>*}
+    <div id="importpalmira-checkmark" style="display: none">
+      <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+        <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+        <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+      </svg>
+    </div>
   </div>
 </div>

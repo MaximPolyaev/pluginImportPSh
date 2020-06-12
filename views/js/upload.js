@@ -75,8 +75,19 @@ class LongTask {
 
         if (jQuery.inArray(task_id, this.finishedTasks) != -1) {
           console.log('monitor progress, finish task id:', task_id);
-          this.is_progress_end = true;
-          this.setProgress(100, false);
+          if (this.type_task === 'delete_all_products') {
+            this.is_progress_end = true;
+            this.setProgress(100, false);
+            setTimeout(() => {
+              this.runTask('import_products');
+            }, 1500)
+          }
+
+          if (this.type_task === 'import_products') {
+            this.is_progress_end = true;
+            this.setProgress(100, false);
+            this.viewStatusImport();
+          }
           return;
         }
 
@@ -100,7 +111,8 @@ class LongTask {
     this.is_progress_end = false;
     this.type_task = type_task;
 
-    this.setOperationMessage();
+    this.setProgress(0, false);
+    this.setTypeTaskMode();
 
     jQuery.ajax({
       type: 'POST',
@@ -138,13 +150,29 @@ class LongTask {
     }
 
     document.getElementById('importpalmira_progress_view').style.width = progress_value + '%';
-    progressTxt.html(progress_value + '%');
+    progressTxt.html(Math.round(progress_value) + '%');
   }
 
-  setOperationMessage = () => {
+  setTypeTaskMode = () => {
     if (this.type_task === 'delete_all_products') {
+      jQuery('#importpalmira_progress_view').parent().addClass('importpalmira-progress__red');
       jQuery('#importpalmira_progress_msg').text(importpalmira_msg_delete_products);
     }
+
+    if (this.type_task === 'import_products') {
+      if (jQuery('#importpalmira_progress_view').parent().hasClass('importpalmira-progress__red')) {
+        jQuery('#importpalmira_progress_view').parent().removeClass('importpalmira-progress__red');
+        jQuery('#importpalmira_progress_msg').text(importpalmira_msg_import_products);
+      }
+    }
+  };
+
+  viewStatusImport = () => {
+    setTimeout(() => {
+      // jQuery('#importpalmira-progress_div').hide('slow');
+      jQuery('#importpalmira-checkmark').show('slow');
+    }, 1500);
+    console.log('status import its OKAY');
   };
 
   ajaxErrorCallback = (jqXHR, testStatus, errorThrown) => {

@@ -176,7 +176,8 @@ class ImportPalmira extends Module
     {
         Media::addJsDef([
             'importpalmira_type_value' => Tools::getValue('IMPORTPALMIRA_TYPE_VALUE'),
-            'importpalmira_msg_delete_products' => 'Удаление товаров..'
+            'importpalmira_msg_delete_products' => 'Удаление товаров...',
+            'importpalmira_msg_import_products' => 'Импорт товаров...'
         ]);
         $this->context->controller->addJS($this->_path . 'views/js/upload.js');
         VarDumper::dump(Tools::getAllValues());

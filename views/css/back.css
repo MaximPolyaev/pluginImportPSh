@@ -139,7 +139,7 @@
 .checkmark {
   width: 112px;
   height: 112px;
-  margin: 0 auto;
+  margin: 50px auto 25px;
   border-radius: 50%;
   display: block;
   stroke-width: 2;
@@ -202,6 +202,19 @@
   box-sizing: border-box;
   position: relative;
   padding: 3px;
+}
+
+.importpalmira-progress.importpalmira-progress__red {
+  background-color: rgba(78, 10, 10, 0.84);
+}
+
+.importpalmira-progress.importpalmira-progress__red .importpalmira-progress_view {
+  background: #ff1818 linear-gradient(45deg, rgba(255, 255, 255, 0.5) -15%, transparent 3%, transparent 36%, rgba(255, 255, 255, 0.5) 39%, rgba(255, 255, 255, 0.5) 75%, transparent 75%, transparent);
+  height: 100%;
+  background-size: 40px;
+  border-radius: 5px;
+  animation: importpalmira_move 1s linear infinite;
+  transition: ease-in 1s;
 }
 
 .importpalmira-progress_view {
