@@ -181,11 +181,14 @@ class ImportPalmira extends Module
 
     public function renderStepThree()
     {
+        $is_delete_products = Tools::getValue('IMPORTPALMIRA_DELETE_PRODUCTS');
         Media::addJsDef([
             'importpalmira_type_value' => Tools::getValue('IMPORTPALMIRA_TYPE_VALUE'),
+            'importpalmira_delete_products' => $is_delete_products,
             'importpalmira_msg_delete_products' => 'Удаление товаров...',
             'importpalmira_msg_import_products' => 'Импорт товаров...'
         ]);
+        $this->context->smarty->assign('is_delete_products', $is_delete_products);
         $this->context->controller->addJS($this->_path . 'views/js/upload.js');
     }
 

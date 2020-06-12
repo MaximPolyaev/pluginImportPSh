@@ -55,8 +55,8 @@
       <button id="btnstartprogress">Btn start progress</button>
     </div>
     <div id="importpalmira-progress_div">
-      <h2 style="font-size: 4rem; text-align: center"><span id="importpalmira_progress_msg">Загрзка товаров...</span><span id="importpalmira_progress_txt">0 %</span></h2>
-      <div class="importpalmira-progress">
+      <h2 style="font-size: 4rem; text-align: center"><span id="importpalmira_progress_msg">{if $is_delete_products}{l s='Removing Products' d='Modules.Importpalmira.Step'}{else}{l s='Product loading' d='Modules.Importpalmira.Step'}{/if}...</span><span id="importpalmira_progress_txt">0 %</span></h2>
+      <div class="importpalmira-progress {if $is_delete_products}importpalmira-progress__red{/if}">
         <div class="importpalmira-progress_view" id="importpalmira_progress_view" style="width: 0"></div>
       </div>
     </div>
