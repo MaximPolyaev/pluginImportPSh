@@ -80,7 +80,7 @@ class ImportForm
         return [
             'IMPORTPALMIRA_DELETE_PRODUCTS' => false,
             'IMPORTPALMIRA_CSV_SEPARATOR' => ';',
-            'IMPORTPALMIRA_FORCE_NUMBERING' => false,
+            'IMPORTPALMIRA_FORCE_ID' => false,
             'IMPORTPALMIRA_REFERENCE_KEY' => 1,
             'IMPORTPALMIRA_XML_SINGLE_NAME' => 'offer',
             'IMPORTPALMIRA_FILE_IMPORT' => '',
@@ -160,7 +160,7 @@ class ImportForm
                     'Delete all products before import'
                 ),
                 $this->getSwitchCfg(
-                    'IMPORTPALMIRA_FORCE_NUMBERING',
+                    'IMPORTPALMIRA_FORCE_ID',
                     'Force ALL ID numbers',
                     'If you enable this option, your imported items ID number will be used as-is. If you do
                             not enable this option, the imported ID numbers will be ignored, and PrestaShop will
