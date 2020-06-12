@@ -78,10 +78,10 @@ class ImportForm
     private function getCfgValues()
     {
         return [
-            'IMPORTPALMIRA_DELETE_PRODUCTS' => false,
-            'IMPORTPALMIRA_CSV_SEPARATOR' => ';',
+            'IMPORTPALMIRA_DELETE_PRODUCTS' => \Tools::getValue('IMPORTPALMIRA_DELETE_PRODUCTS') ? \Tools::getValue('IMPORTPALMIRA_DELETE_PRODUCTS') : false,
+            'IMPORTPALMIRA_CSV_SEPARATOR' => \Tools::getValue('IMPORTPALMIRA_CSV_SEPARATOR') ? \Tools::getValue('IMPORTPALMIRA_CSV_SEPARATOR') : ';',
             'IMPORTPALMIRA_FORCE_ID' => false,
-            'IMPORTPALMIRA_REFERENCE_KEY' => 1,
+            'IMPORTPALMIRA_REFERENCE_KEY' => \Tools::getValue('IMPORTPALMIRA_REFERENCE_KEY') ? \Tools::getValue('IMPORTPALMIRA_REFERENCE_KEY') : 1,
             'IMPORTPALMIRA_XML_SINGLE_NAME' => 'offer',
             'IMPORTPALMIRA_FILE_IMPORT' => '',
             'IMPORTPALMIRA_FILE_IMPORT_SAVE' => false,
@@ -249,6 +249,10 @@ class ImportForm
                 [
                     'type' => 'hidden',
                     'name' => 'IMPORTPALMIRA_REFERENCE_KEY'
+                ],
+                [
+                    'type' => 'hidden',
+                    'name' => 'IMPORTPALMIRA_DELETE_PRODUCTS'
                 ],
                 [
                     'type' => 'text_save',
