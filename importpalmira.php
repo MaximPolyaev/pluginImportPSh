@@ -33,6 +33,7 @@ require_once _PS_MODULE_DIR_ . 'importpalmira/vendor/autoload.php';
 use MaximCode\ImportPalmira\FileUploader;
 use MaximCode\ImportPalmira\Flash;
 use MaximCode\ImportPalmira\ImportForm;
+use MaximCode\ImportPalmira\ImportHelper;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\VarDumper\VarDumper;
 
@@ -142,6 +143,8 @@ class ImportPalmira extends Module
 
     public function renderStepOne()
     {
+        ImportHelper::cleanUnsavedFiles();
+
         $isError = $this->flash->get('step_one_is_error');
         if ($isError) {
             $errors = $this->flash->get('file_load_errors');
@@ -166,6 +169,10 @@ class ImportPalmira extends Module
             Tools::redirectAdmin($this->url);
         }
 
+        if(!Tools::getValue('IMPORTPALMIRA_FILE_IMPORT_SAVE')) {
+            ImportHelper::addUnsavedFile($this->import_file_path);
+        }
+
         $file_name = $fileUploader->getFileName();
         $this->context->smarty->assign('import_file_name', $file_name);
         $this->context->smarty->assign('file_success_msg', $fileUploader->getSuccess());
@@ -180,7 +187,6 @@ class ImportPalmira extends Module
             'importpalmira_msg_import_products' => 'Импорт товаров...'
         ]);
         $this->context->controller->addJS($this->_path . 'views/js/upload.js');
-        VarDumper::dump(Tools::getAllValues());
     }
 
     public function renderView()
