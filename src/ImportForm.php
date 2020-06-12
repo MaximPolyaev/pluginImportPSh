@@ -80,7 +80,7 @@ class ImportForm
         return [
             'IMPORTPALMIRA_DELETE_PRODUCTS' => \Tools::getValue('IMPORTPALMIRA_DELETE_PRODUCTS') ? \Tools::getValue('IMPORTPALMIRA_DELETE_PRODUCTS') : false,
             'IMPORTPALMIRA_CSV_SEPARATOR' => \Tools::getValue('IMPORTPALMIRA_CSV_SEPARATOR') ? \Tools::getValue('IMPORTPALMIRA_CSV_SEPARATOR') : ';',
-            'IMPORTPALMIRA_FORCE_ID' => false,
+            'IMPORTPALMIRA_FORCE_ID' => \Tools::getValue('IMPORTPALMIRA_FORCE_ID') ? \Tools::getValue('IMPORTPALMIRA_FORCE_ID') : false,
             'IMPORTPALMIRA_REFERENCE_KEY' => \Tools::getValue('IMPORTPALMIRA_REFERENCE_KEY') ? \Tools::getValue('IMPORTPALMIRA_REFERENCE_KEY') : 1,
             'IMPORTPALMIRA_XML_SINGLE_NAME' => 'offer',
             'IMPORTPALMIRA_FILE_IMPORT' => '',
@@ -253,6 +253,10 @@ class ImportForm
                 [
                     'type' => 'hidden',
                     'name' => 'IMPORTPALMIRA_DELETE_PRODUCTS'
+                ],
+                [
+                    'type' => 'hidden',
+                    'name' => 'IMPORTPALMIRA_FORCE_ID'
                 ],
                 [
                     'type' => 'text_save',

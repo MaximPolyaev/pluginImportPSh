@@ -185,6 +185,7 @@ class ImportPalmira extends Module
         Media::addJsDef([
             'importpalmira_type_value' => Tools::getValue('IMPORTPALMIRA_TYPE_VALUE'),
             'importpalmira_delete_products' => $is_delete_products,
+            'importpalmira_force_id' => Tools::getValue('IMPORTPALMIRA_FORCE_ID'),
             'importpalmira_msg_delete_products' => 'Удаление товаров...',
             'importpalmira_msg_import_products' => 'Импорт товаров...'
         ]);
