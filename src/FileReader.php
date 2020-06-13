@@ -6,7 +6,6 @@ namespace MaximCode\ImportPalmira;
 
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\File;
-use Symfony\Component\VarDumper\VarDumper;
 
 class FileReader
 {
@@ -20,7 +19,8 @@ class FileReader
     private $errors = [];
     private $str_length;
     private $data_from;
-    private $data_to;
+    private $data_limit;
+    private $num_skip_rows;
 
     public function __construct($file_path)
     {
@@ -77,14 +77,16 @@ class FileReader
         return $this->headers;
     }
 
-    public function getData($from = 0, $to = 0)
+    public function getData($from = 0, $limit = 0, $num_skip_rows = 1)
     {
-        if($to > 0 && $from > $to) {
+        if($from < 0 || $limit < 0) {
             return null;
         }
 
         $this->data_from = $from;
-        $this->data_to = $to;
+        $this->data_limit = $limit;
+        $this->num_skip_rows = $num_skip_rows;
+
         $this->readData();
 
         if (empty($this->data) || is_null($this->data)) {
@@ -101,43 +103,34 @@ class FileReader
 
     private function readData()
     {
-        if (!$this->getHeaders()) {
-            return;
-        }
-
         $counter = 0;
 
-        while (($row = fgetcsv($this->file_open, $this->str_length, $this->delimiter)) !== false) {
-            $row_new = [];
-            foreach($this->headers as $i => $header_name) {
-                $row_new[$header_name] = $row[$i];
-            }
+        if ((int) $this->num_skip_rows === 0 && !empty($this->headers)) {
+            $this->data[] = $this->headers;
+            $this->data_from++;
+        } else if ((int) $this->num_skip_rows > 0) {
+            $this->data_from += $this->num_skip_rows;
+        }
 
-            if ($this->data_from === 0 && $this->data_to === 0) {
-                $this->data[] = $row_new;
-            } else if ($this->data_from === 0 && $this->data_to > 0) {
-                if($counter <= $this->data_to) {
-                    $this->data[] = $row_new;
+        $to = $this->data_from + $this->data_limit;
+
+        while (($row = fgetcsv($this->file_open, $this->str_length, $this->delimiter)) !== false) {
+            if ($this->data_from === 0 && $to === 0) {
+                $this->data[] = $row;
+                continue;
+            } else if ($this->data_from === 0 && $this->data_limit > 0) {
+                if ($counter < $to) {
+                    $this->data[] = $row;
                 } else {
                     return;
                 }
-            } else if ($this->data_from > 0 && $this->data_to == 0) {
-                if($counter >= $this->data_from) {
-                    $this->data[] = $row_new;
+            } else if ($this->data_from > 0 && $this->data_limit === 0 && $counter >= $this->data_from) {
+                $this->data[] = $row;
+            } else if ($this->data_from > 0 && $this->data_limit > 0 && $counter >= $this->data_from) {
+                if ($counter < $to) {
+                    $this->data[] = $row;
                 } else {
-                    $counter++;
-                    continue;
-                }
-            } else if ($this->data_from > 0 && $this->data_to > 0) {
-                if($counter >= $this->data_from) {
-                    if($counter <= $this->data_to) {
-                        $this->data[] = $row_new;
-                    } else {
-                        return;
-                    }
-                } else {
-                    $counter++;
-                    continue;
+                    return;
                 }
             }
 

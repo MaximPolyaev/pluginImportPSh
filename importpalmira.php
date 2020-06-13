@@ -186,6 +186,7 @@ class ImportPalmira extends Module
             'importpalmira_type_value' => Tools::getValue('IMPORTPALMIRA_TYPE_VALUE'),
             'importpalmira_delete_products' => $is_delete_products,
             'importpalmira_force_id' => Tools::getValue('IMPORTPALMIRA_FORCE_ID'),
+            'importpalmira_num_skip_rows' => Tools::getValue('IMPORTPALMIRA_NUM_SKIP_ROWS'),
             'importpalmira_msg_delete_products' => 'Удаление товаров...',
             'importpalmira_msg_import_products' => 'Импорт товаров...'
         ]);

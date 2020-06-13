@@ -2,6 +2,7 @@
 
 use MaximCode\ImportPalmira\FileReader;
 use MaximCode\ImportPalmira\ImportDB;
+use MaximCode\ImportPalmira\ImportDBnew;
 use MaximCode\ImportPalmira\ImportHelper;
 use MaximCode\ImportPalmira\JsonCfg;
 use MaximCode\ImportPalmira\ProgressManager;
@@ -105,6 +106,32 @@ class AdminImportpalmiraController extends ModuleAdminController
         exit;
     }
 
+    public function ajaxProcessImportOne()
+    {
+        set_time_limit(0);
+        $import_file_path = Tools::getValue('importpalmira_import_file_path');
+        $num_skip_rows = Tools::getValue('importpalmira_num_skip_rows');
+        $import_matches = Tools::getValue('importpalmira_type_value');
+
+        $fileReader = (new FileReader($import_file_path))->init();
+
+        $import_data = $fileReader->getData(0, 1, $num_skip_rows) ?? 'error';
+
+        if ($import_data === 'error') {
+            WebHelpers::echoJson([
+                'response' => 'true',
+                'import_status' => false,
+                'errors' => $fileReader->getErrors()
+            ]);
+            die;
+        }
+
+        $import_data = ImportHelper::optimize_matching($import_data, $import_matches);
+
+        WebHelpers::echoJson(['response' => 'true', 'import_status' => true]);
+        die;
+    }
+
     public function ajaxProcessTestAjax()
     {
         set_time_limit(0);
@@ -163,7 +190,8 @@ class AdminImportpalmiraController extends ModuleAdminController
         die;
     }
 
-    public function getContext() {
+    public function getContext()
+    {
         return $this->context;
     }
 }

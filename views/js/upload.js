@@ -39,6 +39,7 @@ class LongTask {
       data: {
         ajax: true,
         action: 'longprogress',
+        type_task: this.type_task,
         task: task_id
       },
       success: (data) => {
@@ -66,6 +67,7 @@ class LongTask {
       data: {
         ajax: true,
         action: 'getprogress',
+        type_task: this.type_task,
         task: task_id
       },
       success: (data) => {
@@ -122,6 +124,7 @@ class LongTask {
       data: {
         ajax: true,
         action: 'progressnew',
+        type_task: this.type_task
       },
       success: (data) => {
         console.log('run task, data:', data);
@@ -216,5 +219,25 @@ const testAjax = function () {
       },
       error: ajaxErrorCallback
     });
+  });
+
+  const btnTestImportOne = document.querySelector('#btntestimportone');
+  btnTestImportOne.addEventListener('click', () => {
+    jQuery.ajax({
+      type: 'POST',
+      url: importpalmira_ajax,
+      // dataType: 'json',
+      data: {
+        ajax: true,
+        action: 'importone',
+        importpalmira_import_file_path,
+        importpalmira_type_value,
+        importpalmira_num_skip_rows
+      },
+      success: (data) => {
+        console.log(data);
+      },
+      error: ajaxErrorCallback
+    })
   });
 };
