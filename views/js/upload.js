@@ -230,9 +230,11 @@ const testAjax = function () {
       data: {
         ajax: true,
         action: 'importone',
+        type_task: 'import_products',
         importpalmira_import_file_path,
         importpalmira_type_value,
-        importpalmira_num_skip_rows
+        importpalmira_num_skip_rows,
+        progress_num: 1
       },
       success: (data) => {
         console.log(data);

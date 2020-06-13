@@ -109,12 +109,33 @@ class AdminImportpalmiraController extends ModuleAdminController
     public function ajaxProcessImportOne()
     {
         set_time_limit(0);
+
+        switch(Tools::getValue('type_task')) {
+            case 'import_products':
+                $this->importProducts();
+                break;
+            case 'delete_products':
+                $this->deleteProducts();
+                break;
+            default:
+                WebHelpers::echoJson([
+                    'response' => 'true',
+                    'type_task' => 'empty'
+                ]);
+                die;
+        }
+        die;
+    }
+
+    private function importProducts()
+    {
         $import_file_path = Tools::getValue('importpalmira_import_file_path');
         $num_skip_rows = Tools::getValue('importpalmira_num_skip_rows');
         $import_matches = Tools::getValue('importpalmira_type_value');
+        $progress_num = Tools::getValue('progress_num') ? Tools::getValue('progress_num') : 0;
 
         $fileReader = (new FileReader($import_file_path))->init();
-        $import_data = $fileReader->getData(0, 1, $num_skip_rows) ?? 'error';
+        $import_data = $fileReader->getData($progress_num, 10, $num_skip_rows) ?? 'error';
         if ($import_data === 'error') {
             WebHelpers::echoJson([
                 'response' => 'true',
@@ -128,7 +149,7 @@ class AdminImportpalmiraController extends ModuleAdminController
         $importDb = new ImportDB($this);
         $products = $importDb->getProducts();
 
-        $counter = 0;
+        $counter = $progress_num;
         $import_status = true;
         $main_error_msg = '';
         foreach ($import_data as $product_item) {
@@ -138,14 +159,21 @@ class AdminImportpalmiraController extends ModuleAdminController
                 $import_status = false;
                 $main_error_msg = "File: {$e->getFile()}. Line: {$e->getLine()}. {$e->getMessage()}";
             }
+            $counter++;
         }
 
         WebHelpers::echoJson([
             'response' => 'true',
             'import_status' => $import_status,
-            'main_error_msg' => $main_error_msg
+            'main_error_msg' => $main_error_msg,
+            'progress_num' => $counter
         ]);
         die;
+    }
+
+    private function deleteProducts()
+    {
+
     }
 
     public function ajaxProcessTestAjax()
