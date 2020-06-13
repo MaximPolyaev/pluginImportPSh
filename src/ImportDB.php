@@ -19,13 +19,10 @@ use PrestaShop\PrestaShop\Adapter\Entity\Shop;
 use PrestaShop\PrestaShop\Adapter\Entity\SpecificPrice;
 use PrestaShop\PrestaShop\Adapter\Entity\StockAvailable;
 use PrestaShop\PrestaShop\Adapter\Entity\Tag;
-use PrestaShop\PrestaShop\Core\Foundation\IoC\Exception;
 use Symfony\Component\VarDumper\VarDumper;
 
 class ImportDB
 {
-    private $data;
-    private $data_length;
     /**
      * @var Context
      */
@@ -40,10 +37,8 @@ class ImportDB
     private $products;
     private $errors = [];
 
-    public function __construct($module, $import_data)
+    public function __construct($module)
     {
-        $this->data = $import_data;
-        $this->data_length = count($import_data);
         $this->module = $module;
         $this->context = $this->module->getContext();
         $this->language_id = $this->context->language->id;
@@ -56,442 +51,434 @@ class ImportDB
 
         $shops_ids = array_values(Shop::getShops(false, null, true));
         Shop::setContext(Shop::CONTEXT_SHOP, $shops_ids[0]);
-
-//        $this->deleteAllProducts();
-        $this->import();
     }
 
-    private function import()
+    public function send($import_product)
     {
-        foreach ($this->data as $data_item) {
-            $is_update = $this->isUpdate($data_item);
+        $is_update = $this->isUpdate($import_product);
 
-            if (isset($data_item['shop'])) {
-                $shop_id = Shop::getIdByName($data_item['shop']);
-                $data_item['shop'] = (bool)$shop_id ? $shop_id : Shop::getShop((int)$data_item['shop'])['id_shop'];
-                unset($shop_id);
+        if (isset($import_product['shop'])) {
+            $shop_id = Shop::getIdByName($import_product['shop']);
+            $import_product['shop'] = (bool)$shop_id ? $shop_id : Shop::getShop((int)$import_product['shop'])['id_shop'];
+            unset($shop_id);
 
-                if ((bool)$data_item['shop']) {
-                    Shop::setContext(Shop::CONTEXT_SHOP, (int)$data_item['shop']);
-                    $this->shop_id = (int)$data_item['shop'];
-                }
+            if ((bool)$import_product['shop']) {
+                Shop::setContext(Shop::CONTEXT_SHOP, (int)$import_product['shop']);
+                $this->shop_id = (int)$import_product['shop'];
             }
+        }
 
-            $product = new Product($data_item['id'] ?? null);
-            $product->id_category_default = $this->default_category;
+        $productObj = new Product($import_product['id'] ?? null);
+        $productObj->id_category_default = $this->default_category;
 //            $product->force_id = true;
 
 
-            if (isset($data_item['id'])) {
-                $product->id = $data_item['id'];
+        if (isset($import_product['id'])) {
+            $productObj->id = $import_product['id'];
+        }
+
+        $this->addSimpleFields($productObj, $import_product);
+
+        if (isset($import_product['supplier_reference'])) {
+            $productObj->addSupplierReference('1', 0, $import_product['supplier_reference'] . 'new', '10', '1');
+            $productObj->supplier_reference = $import_product['supplier_reference'];
+            $productObj->id_supplier = 1;
+        }
+
+        if (isset($import_product['manufacturer'])) {
+            $productObj->id_manufacturer = Manufacturer::getIdByName($import_product['manufacturer']) ?? 0;
+        }
+
+        if (isset($import_product['ean13'])) {
+            if (\Validate::isEan13($import_product['ean13'])) {
+                $productObj->ean13 = $import_product['ean13'];
             }
+            /*
+             * else output error
+             */
+        }
 
-            $this->addSimpleFields($product, $data_item);
-
-            if (isset($data_item['supplier_reference'])) {
-                $product->addSupplierReference('1', 0, $data_item['supplier_reference'] . 'new', '10', '1');
-                $product->supplier_reference = $data_item['supplier_reference'];
-                $product->id_supplier = 1;
+        if (isset($import_product['upc'])) {
+            if (\Validate::isUpc($import_product['upc'])) {
+                $productObj->upc = $import_product['upc'];
             }
+            /*
+             * else output error
+             */
+        }
 
-            if (isset($data_item['manufacturer'])) {
-                $product->id_manufacturer = Manufacturer::getIdByName($data_item['manufacturer']) ?? 0;
+        if (isset($import_product['isbn'])) {
+            if (\Validate::isIsbn($import_product['isbn'])) {
+                $productObj->isbn = $import_product['isbn'];
             }
+            /*
+             * else output error
+             */
+        }
 
-            if (isset($data_item['ean13'])) {
-                if (\Validate::isEan13($data_item['ean13'])) {
-                    $product->ean13 = $data_item['ean13'];
+
+        if ($is_update) {
+            $productObj->update();
+        } else {
+            VarDumper::dump('dump add');
+            $productObj->add();
+        }
+
+        if (isset($import_product['category'])) {
+            $new_categories = [$this->default_category];
+            if ($enumeration_str = self::getEnumerationString($import_product['category'])) {
+                $enumeration_arr = self::convertEnumerationStrToArray($enumeration_str);
+                $enumeration_arr = array_filter(
+                    array_map(function ($item) {
+                        return Category::searchByName(
+                                $this->language_id,
+                                $item,
+                                true)['id_category'] ?? false;
+                    }, $enumeration_arr),
+                    function ($item) {
+                        return $item;
+                    });
+
+                $new_categories = array_unique(array_merge($new_categories, $enumeration_arr));
+
+            } else if ($category = Category::searchByName($this->language_id, $import_product['category'], true)) {
+                $new_categories[] = $category['id_category'];
+                $new_categories = array_unique($new_categories);
+            }
+            $productObj->updateCategories($new_categories);
+        } else if (!$is_update) {
+            $new_categories = [$this->default_category];
+            $productObj->updateCategories($new_categories);
+        }
+
+        if (isset($import_product['quantity'])) {
+            StockAvailable::setQuantity($productObj->id, 0, $import_product['quantity'], $this->shop_id, false);
+        }
+
+        if (isset($import_product['out_of_stock'])) {
+            StockAvailable::setProductOutOfStock($productObj->id, $import_product['out_of_stock'], $this->shop_id);
+        }
+
+        if (isset($import_product['reduction_percent']) && $import_product['reduction_percent']) {
+            $this->addSpecificPrice($productObj->id, $import_product);
+        }
+
+        if (isset($import_product['nb_downloadable']) ||
+            isset($import_product['nb_days_accessible']) ||
+            isset($import_product['file_url']) ||
+            (
+                isset($import_product['date_expiration']) &&
+                \Validate::isDate($import_product['date_expiration'])
+            )) {
+            if ($productObj->is_virtual) {
+                $product_download_id = ProductDownload::getIdFromIdProduct($productObj->id);
+                $productDownload = new ProductDownload((bool) $product_download_id ? $product_download_id : null);
+
+                if (isset($import_product['nb_downloadable'])) {
+                    $productDownload->nb_downloadable = $import_product['nb_downloadable'];
                 }
-                /*
-                 * else output error
-                 */
-            }
 
-            if (isset($data_item['upc'])) {
-                if (\Validate::isUpc($data_item['upc'])) {
-                    $product->upc = $data_item['upc'];
+                if (isset($import_product['nb_days_accessible'])) {
+                    $productDownload->nb_days_accessible = $import_product['nb_days_accessible'];
                 }
-                /*
-                 * else output error
-                 */
-            }
 
-            if (isset($data_item['isbn'])) {
-                if (\Validate::isIsbn($data_item['isbn'])) {
-                    $product->isbn = $data_item['isbn'];
+                if (isset($import_product['date_expiration']) && \Validate::isDate($import_product['date_expiration'])) {
+                    $productDownload->date_expiration = $import_product['date_expiration'];
+                } else if (strtotime($productDownload->date_expiration) === strtotime('0000-00-00') ||
+                    (bool) $product_download_id) {
+                    $productDownload->date_expiration = '';
                 }
-                /*
-                 * else output error
-                 */
-            }
 
-
-            if ($is_update) {
-                $product->update();
-            } else {
-                VarDumper::dump('dump add');
-                $product->add();
-            }
-
-            if (isset($data_item['category'])) {
-                $new_categories = [$this->default_category];
-                if ($enumeration_str = self::getEnumerationString($data_item['category'])) {
-                    $enumeration_arr = self::convertEnumerationStrToArray($enumeration_str);
-                    $enumeration_arr = array_filter(
-                        array_map(function ($item) {
-                            return Category::searchByName(
-                                    $this->language_id,
-                                    $item,
-                                    true)['id_category'] ?? false;
-                        }, $enumeration_arr),
-                        function ($item) {
-                            return $item;
-                        });
-
-                    $new_categories = array_unique(array_merge($new_categories, $enumeration_arr));
-
-                } else if ($category = Category::searchByName($this->language_id, $data_item['category'], true)) {
-                    $new_categories[] = $category['id_category'];
-                    $new_categories = array_unique($new_categories);
+                if (isset($import_product['file_url']) && \Validate::isUrl($import_product['file_url'])) {
+                    $productDownload->filename = ProductDownload::getNewFilename();
+                    \Tools::copy($import_product['file_url'], _PS_DOWNLOAD_DIR_ . $productDownload->filename);
+                    $productDownload->display_filename = basename($import_product['file_url']);
                 }
-                $product->updateCategories($new_categories);
-            } else if (!$is_update) {
-                $new_categories = [$this->default_category];
-                $product->updateCategories($new_categories);
-            }
 
-            if (isset($data_item['quantity'])) {
-                StockAvailable::setQuantity($product->id, 0, $data_item['quantity'], $this->shop_id, false);
-            }
-
-            if (isset($data_item['out_of_stock'])) {
-                StockAvailable::setProductOutOfStock($product->id, $data_item['out_of_stock'], $this->shop_id);
-            }
-
-            if (isset($data_item['reduction_percent']) && $data_item['reduction_percent']) {
-                $this->addSpecificPrice($product->id, $data_item);
-            }
-
-            if (isset($data_item['nb_downloadable']) ||
-                isset($data_item['nb_days_accessible']) ||
-                isset($data_item['file_url']) ||
-                (
-                    isset($data_item['date_expiration']) &&
-                    \Validate::isDate($data_item['date_expiration'])
-                )) {
-                if ($product->is_virtual) {
-                    $product_download_id = ProductDownload::getIdFromIdProduct($product->id);
-                    $productDownload = new ProductDownload((bool) $product_download_id ? $product_download_id : null);
-
-                    if (isset($data_item['nb_downloadable'])) {
-                        $productDownload->nb_downloadable = $data_item['nb_downloadable'];
-                    }
-
-                    if (isset($data_item['nb_days_accessible'])) {
-                        $productDownload->nb_days_accessible = $data_item['nb_days_accessible'];
-                    }
-
-                    if (isset($data_item['date_expiration']) && \Validate::isDate($data_item['date_expiration'])) {
-                        $productDownload->date_expiration = $data_item['date_expiration'];
-                    } else if (strtotime($productDownload->date_expiration) === strtotime('0000-00-00') ||
-                        (bool) $product_download_id) {
-                        $productDownload->date_expiration = '';
-                    }
-
-                    if (isset($data_item['file_url']) && \Validate::isUrl($data_item['file_url'])) {
-                        $productDownload->filename = ProductDownload::getNewFilename();
-                        \Tools::copy($data_item['file_url'], _PS_DOWNLOAD_DIR_ . $productDownload->filename);
-                        $productDownload->display_filename = basename($data_item['file_url']);
-                    }
-
-                    if ((bool) $product_download_id) {
-                        $productDownload->update();
-                    } else {
-                        $productDownload->id_product = (int) $product->id;
-                        $productDownload->add();
-
-                    }
+                if ((bool) $product_download_id) {
+                    $productDownload->update();
+                } else {
+                    $productDownload->id_product = (int) $productObj->id;
+                    $productDownload->add();
                 }
-                /*
-                 * else output error
-                 */
             }
+            /*
+             * else output error
+             */
+        }
 
-            if (isset($data_item['accessories'])) {
-                if ($enumeration_str = self::getEnumerationString($data_item['accessories'])) {
-                    $enumeration_arr = self::convertEnumerationStrToArray($enumeration_str);
-                    $enumeration_arr = array_map(function ($enum) use ($product) {
-                        foreach ($this->products as $p) {
-                            if (($enum === $p['id_product'] || $enum == $p['name']) &&
-                                ($this->shop_id === (int) $p['id_shop']) &&
-                                $p['id_product'] !== $product->id) {
+        if (isset($import_product['accessories'])) {
+            if ($enumeration_str = self::getEnumerationString($import_product['accessories'])) {
+                $enumeration_arr = self::convertEnumerationStrToArray($enumeration_str);
+                $enumeration_arr = array_map(function ($enum) use ($productObj) {
+                    foreach ($this->products as $p) {
+                        if (($enum === $p['id_product'] || $enum == $p['name']) &&
+                            ($this->shop_id === (int) $p['id_shop']) &&
+                            $p['id_product'] !== $productObj->id) {
 
-                                return (int) $p['id_product'];
-                            }
+                            return (int) $p['id_product'];
                         }
-                        return null;
-                    }, $enumeration_arr);
-                    $enumeration_arr = array_values(array_filter($enumeration_arr, function ($enum) {
-                        return $enum !== null;
-                    }));
-
-                    $product->deleteAccessories();
-                    $product->changeAccessories($enumeration_arr);
-                }
-            }
-
-            if (isset($data_item['features'])) {
-                if ($data_item['features']) {
-                    $feature_str = self::getEnumerationString($data_item['features']);
-                    $feature = self::convertEnumerationStrToArray($feature_str, ':');
-
-                    $feature_name = isset($feature[0]) ? $feature[0] : '';
-                    $feature_value = isset($feature[1]) ? $feature[1] : '';
-                    $position = isset($feature[2]) ? (int) $feature[2] : false;
-                    $custom = isset($feature[3]) ? (int) $feature[3] : false;
-
-                    if (!empty($feature_name) && !empty($feature_value)) {
-                        $id_feature = (int) Feature::addFeatureImport($feature_name, $position);
-                        $id_feature_value = (int) FeatureValue::addFeatureValueImport($id_feature, $feature_value, $product->id, $this->language_id, $custom);
-                        Product::addFeatureProductImport($product->id, $id_feature, $id_feature_value);
-                        Feature::cleanPositions();
                     }
+                    return null;
+                }, $enumeration_arr);
+                $enumeration_arr = array_values(array_filter($enumeration_arr, function ($enum) {
+                    return $enum !== null;
+                }));
+
+                $productObj->deleteAccessories();
+                $productObj->changeAccessories($enumeration_arr);
+            }
+        }
+
+        if (isset($import_product['features'])) {
+            if ($import_product['features']) {
+                $feature_str = self::getEnumerationString($import_product['features']);
+                $feature = self::convertEnumerationStrToArray($feature_str, ':');
+
+                $feature_name = isset($feature[0]) ? $feature[0] : '';
+                $feature_value = isset($feature[1]) ? $feature[1] : '';
+                $position = isset($feature[2]) ? (int) $feature[2] : false;
+                $custom = isset($feature[3]) ? (int) $feature[3] : false;
+
+                if (!empty($feature_name) && !empty($feature_value)) {
+                    $id_feature = (int) Feature::addFeatureImport($feature_name, $position);
+                    $id_feature_value = (int) FeatureValue::addFeatureValueImport($id_feature, $feature_value, $productObj->id, $this->language_id, $custom);
+                    Product::addFeatureProductImport($productObj->id, $id_feature, $id_feature_value);
+                    Feature::cleanPositions();
                 }
             }
+        }
 
-            if (isset($data_item['tags'])) {
-                Tag::deleteTagsForProduct($product->id);
-                Tag::addTags($this->language_id, $product->id, $data_item['tags']);
+        if (isset($import_product['tags'])) {
+            Tag::deleteTagsForProduct($productObj->id);
+            Tag::addTags($this->language_id, $productObj->id, $import_product['tags']);
+        }
+
+        if (isset($import_product['delete_existing_images'])) {
+            if ($import_product['delete_existing_images'] === '1' || true) {
+                $productObj->deleteImages();
             }
+        }
 
-            if (isset($data_item['delete_existing_images'])) {
-                if ($data_item['delete_existing_images'] === '1' || true) {
-                    $product->deleteImages();
-                }
-            }
+        if (isset($import_product['image'])) {
+            VarDumper::dump(Shop::getContext());
+            $images_url = explode(',', $import_product['image']);
+            $images_url = array_map(function($image_url) {
+                return trim($image_url);
+            }, $images_url);
 
-            if (isset($data_item['image'])) {
-                VarDumper::dump(Shop::getContext());
-                $images_url = explode(',', $data_item['image']);
-                $images_url = array_map(function($image_url) {
-                    return trim($image_url);
-                }, $images_url);
+            $product_has_images = (bool) Image::getImages($this->language_id, (int) $productObj->id);
+            foreach ($images_url as $key => $url) {
+                $url = trim($url);
+                $error = false;
+                if (!empty($url)) {
+                    $url = str_replace(' ', '%20', $url);
 
-                $product_has_images = (bool) Image::getImages($this->language_id, (int) $product->id);
-                foreach ($images_url as $key => $url) {
-                    $url = trim($url);
-                    $error = false;
-                    if (!empty($url)) {
-                        $url = str_replace(' ', '%20', $url);
-
-                        $image = new Image();
-                        $image->id_product = (int) $product->id;
-                        $image->position = Image::getHighestPosition($product->id) + 1;
-                        $image->cover = (!$key && !$product_has_images) ? true : false;
-                        $alt = 'test alt';
-                        if (strlen($alt) > 0) {
-                            $image->legend = self::createMultiLangField($alt);
-                        }
-                        // file_exists doesn't work with HTTP protocol
-                        if (($field_error = $image->validateFields(false, true)) === true &&
-                            ($lang_field_error = $image->validateFieldsLang(false, true)) === true && $image->add()) {
-                            // associate image to selected shops
+                    $image = new Image();
+                    $image->id_product = (int) $productObj->id;
+                    $image->position = Image::getHighestPosition($productObj->id) + 1;
+                    $image->cover = (!$key && !$product_has_images) ? true : false;
+                    $alt = 'test alt';
+                    if (strlen($alt) > 0) {
+                        $image->legend = self::createMultiLangField($alt);
+                    }
+                    // file_exists doesn't work with HTTP protocol
+                    if (($field_error = $image->validateFields(false, true)) === true &&
+                        ($lang_field_error = $image->validateFieldsLang(false, true)) === true && $image->add()) {
+                        // associate image to selected shops
 //                            $image->associateTo($shops);
-                            if (!self::copyImg($product->id, $image->id, $url, 'products', true)) {
-                                $image->delete();
-                                VarDumper::dump("Error copying image: $url");
-                            }
-                        } else {
-                            $error = true;
+                        if (!self::copyImg($productObj->id, $image->id, $url, 'products', true)) {
+                            $image->delete();
+                            VarDumper::dump("Error copying image: $url");
                         }
                     } else {
                         $error = true;
                     }
-
-                    if ($error) VarDumper::dump('error import img');
+                } else {
+                    $error = true;
                 }
+
+                if ($error) VarDumper::dump('error import img');
             }
         }
-
-        \Tools::clearCache();
     }
 
     /**
-     * @param $product Product
+     * @param $productObj Product
      * @param $info
      */
-    public function addSimpleFields($product, $info)
+    public function addSimpleFields($productObj, $import_product)
     {
-        if (isset($info['active'])) {
-            $product->active = $info['active'];
+        if (isset($import_product['active'])) {
+            $productObj->active = $import_product['active'];
         }
 
-        if (isset($info['name'])) {
-            $product->name = $info['name'];
+        if (isset($import_product['name'])) {
+            $productObj->name = $import_product['name'];
         }
 
-        if (isset($info['price_tex'])) {
-            $product->price = (float) $info['price_tex'];
+        if (isset($import_product['price_tex'])) {
+            $productObj->price = (float) $import_product['price_tex'];
         }
 
-        if (isset($info['id_tax_rules_group'])) {
-            $product->id_tax_rules_group = $info['id_tax_rules_group'];
+        if (isset($import_product['id_tax_rules_group'])) {
+            $productObj->id_tax_rules_group = $import_product['id_tax_rules_group'];
         }
 
-        if (isset($info['wholesale_price'])) {
-            $product->wholesale_price = $info['wholesale_price'];
+        if (isset($import_product['wholesale_price'])) {
+            $productObj->wholesale_price = $import_product['wholesale_price'];
         }
 
-        if (isset($info['on_sale'])) {
-            $product->on_sale = $info['on_sale'];
+        if (isset($import_product['on_sale'])) {
+            $productObj->on_sale = $import_product['on_sale'];
         }
 
-        if (isset($info['reference'])) {
-            $product->reference = $info['reference'];
+        if (isset($import_product['reference'])) {
+            $productObj->reference = $import_product['reference'];
         }
 
-        if (isset($info['ecotax'])) {
-            $product->ecotax = $info['ecotax'];
+        if (isset($import_product['ecotax'])) {
+            $productObj->ecotax = $import_product['ecotax'];
         }
 
-        if (isset($info['width'])) {
-            $product->width = $info['width'];
+        if (isset($import_product['width'])) {
+            $productObj->width = $import_product['width'];
         }
 
-        if (isset($info['height'])) {
-            $product->height = $info['height'];
+        if (isset($import_product['height'])) {
+            $productObj->height = $import_product['height'];
         }
 
-        if (isset($info['depth'])) {
-            $product->depth = $info['depth'];
+        if (isset($import_product['depth'])) {
+            $productObj->depth = $import_product['depth'];
         }
 
-        if (isset($info['weight'])) {
-            $product->weight = $info['weight'];
+        if (isset($import_product['weight'])) {
+            $productObj->weight = $import_product['weight'];
         }
 
-        if (isset($info['delivery_in_stock'])) {
-            $product->delivery_in_stock = $info['delivery_in_stock'];
+        if (isset($import_product['delivery_in_stock'])) {
+            $productObj->delivery_in_stock = $import_product['delivery_in_stock'];
         }
 
-        if (isset($info['delivery_out_stock'])) {
-            $product->delivery_out_stock = $info['delivery_out_stock'];
+        if (isset($import_product['delivery_out_stock'])) {
+            $productObj->delivery_out_stock = $import_product['delivery_out_stock'];
         }
 
-        if (isset($info['minimal_quantity'])) {
-            $product->minimal_quantity = $info['minimal_quantity'];
+        if (isset($import_product['minimal_quantity'])) {
+            $productObj->minimal_quantity = $import_product['minimal_quantity'];
         }
 
-        if (isset($info['low_stock_alert'])) {
-            $product->low_stock_alert = $info['low_stock_alert'];
+        if (isset($import_product['low_stock_alert'])) {
+            $productObj->low_stock_alert = $import_product['low_stock_alert'];
         }
 
-        if (isset($info['low_stock_threshold'])) {
-            $product->low_stock_threshold = $info['low_stock_threshold'] ? $info['low_stock_threshold'] : null;
+        if (isset($import_product['low_stock_threshold'])) {
+            $productObj->low_stock_threshold = $import_product['low_stock_threshold'] ? $import_product['low_stock_threshold'] : null;
         }
 
-        if (isset($info['visibility'])) {
-            if (in_array($info['visibility'], ['both', 'catalog', 'search', 'none'])) {
-                $product->visibility = $info['visibility'];
+        if (isset($import_product['visibility'])) {
+            if (in_array($import_product['visibility'], ['both', 'catalog', 'search', 'none'])) {
+                $productObj->visibility = $import_product['visibility'];
             }
         }
 
-        if (isset($info['additional_shipping_cost'])) {
-            $product->additional_shipping_cost = $info['additional_shipping_cost'];
+        if (isset($import_product['additional_shipping_cost'])) {
+            $productObj->additional_shipping_cost = $import_product['additional_shipping_cost'];
         }
 
-        if (isset($info['unity'])) {
-            $product->unity = $info['unity'] ? $info['unity'] : null;
+        if (isset($import_product['unity'])) {
+            $productObj->unity = $import_product['unity'] ? $import_product['unity'] : null;
         }
 
-        if (isset($info['unit_price'])) {
-            $product->unit_price = $info['unit_price'] ? $info['unit_price'] : null;
+        if (isset($import_product['unit_price'])) {
+            $productObj->unit_price = $import_product['unit_price'] ? $import_product['unit_price'] : null;
         }
 
-        if (isset($info['description_short'])) {
-            $product->description_short = $info['description_short'];
+        if (isset($import_product['description_short'])) {
+            $productObj->description_short = $import_product['description_short'];
         }
 
-        if (isset($info['description'])) {
-            $product->description = $info['description'];
+        if (isset($import_product['description'])) {
+            $productObj->description = $import_product['description'];
         }
 
-        if (isset($info['meta_title'])) {
-            $product->meta_title = $info['meta_title'];
+        if (isset($import_product['meta_title'])) {
+            $productObj->meta_title = $import_product['meta_title'];
         }
 
-        if (isset($info['meta_description'])) {
-            $product->meta_description = $info['meta_description'];
+        if (isset($import_product['meta_description'])) {
+            $productObj->meta_description = $import_product['meta_description'];
         }
 
-        if (isset($info['meta_keywords'])) {
-            $product->meta_keywords = $info['meta_keywords'];
+        if (isset($import_product['meta_keywords'])) {
+            $productObj->meta_keywords = $import_product['meta_keywords'];
         }
 
-        if (isset($info['link_rewrite'])) {
-            $product->link_rewrite = $info['link_rewrite'];
+        if (isset($import_product['link_rewrite'])) {
+            $productObj->link_rewrite = $import_product['link_rewrite'];
         }
 
-        if (isset($info['available_now'])) {
-            $product->available_now = $info['available_now'];
+        if (isset($import_product['available_now'])) {
+            $productObj->available_now = $import_product['available_now'];
         }
 
-        if (isset($info['available_later'])) {
-            $product->available_later = $info['available_later'];
+        if (isset($import_product['available_later'])) {
+            $productObj->available_later = $import_product['available_later'];
         }
 
-        if (isset($info['available_for_order'])) {
-            $product->available_for_order = $info['available_for_order'];
+        if (isset($import_product['available_for_order'])) {
+            $productObj->available_for_order = $import_product['available_for_order'];
         }
 
-        if (isset($info['available_date'])) {
-            if (\Validate::isDate($info['available_date'])) {
-                $product->available_date = $info['available_date'];
+        if (isset($import_product['available_date'])) {
+            if (\Validate::isDate($import_product['available_date'])) {
+                $productObj->available_date = $import_product['available_date'];
             }
         }
 
-        if (isset($info['date_add'])) {
-            if (\Validate::isDate($info['date_add'])) {
-                $product->date_add = $info['date_add'];
+        if (isset($import_product['date_add'])) {
+            if (\Validate::isDate($import_product['date_add'])) {
+                $productObj->date_add = $import_product['date_add'];
             }
         }
 
-        if (isset($info['show_price'])) {
-            $product->show_price = $info['show_price'];
+        if (isset($import_product['show_price'])) {
+            $productObj->show_price = $import_product['show_price'];
         }
 
-        if (isset($info['online_only'])) {
-            $product->online_only = $info['online_only'];
+        if (isset($import_product['online_only'])) {
+            $productObj->online_only = $import_product['online_only'];
         }
 
-        if (isset($info['condition'])) {
-            if (in_array($info['condition'], ['new', 'used', 'refurbished'])) {
-                $product->condition = $info['condition'];
+        if (isset($import_product['condition'])) {
+            if (in_array($import_product['condition'], ['new', 'used', 'refurbished'])) {
+                $productObj->condition = $import_product['condition'];
             }
         }
 
-        if (isset($info['customizable'])) {
-            $product->customizable = $info['customizable'];
+        if (isset($import_product['customizable'])) {
+            $productObj->customizable = $import_product['customizable'];
         }
 
-        if (isset($info['uploadable_files'])) {
-            $product->uploadable_files = $info['uploadable_files'];
+        if (isset($import_product['uploadable_files'])) {
+            $productObj->uploadable_files = $import_product['uploadable_files'];
         }
 
-        if (isset($info['text_fields'])) {
-            $product->text_fields = $info['text_fields'];
+        if (isset($import_product['text_fields'])) {
+            $productObj->text_fields = $import_product['text_fields'];
         }
 
-        if (isset($info['is_virtual'])) {
-            $product->is_virtual = $info['is_virtual'];
+        if (isset($import_product['is_virtual'])) {
+            $productObj->is_virtual = $import_product['is_virtual'];
         }
 
-        if (isset($info['advanced_stock_management'])) {
-            $product->advanced_stock_management = (int) $info['advanced_stock_management'];
+        if (isset($import_product['advanced_stock_management'])) {
+            $productObj->advanced_stock_management = (int) $import_product['advanced_stock_management'];
         }
 
-        if (isset($info['depends_on_stock'])) {
-            $product->depends_on_stock = (int) $info['depends_on_stock'];
+        if (isset($import_product['depends_on_stock'])) {
+            $productObj->depends_on_stock = (int) $import_product['depends_on_stock'];
         }
     }
 
@@ -543,12 +530,12 @@ class ImportDB
         }
     }
 
-    public function isUpdate($data_item)
+    public function isUpdate($import_product)
     {
         $is_update = false;
-        if (isset($data_item['id'])) {
-            foreach ($this->products as $product) {
-                if ($product['id_product'] === $data_item['id']) {
+        if (isset($import_product['id'])) {
+            foreach ($this->products as $product_item) {
+                if ($product_item['id_product'] === $import_product['id']) {
                     $is_update = true;
                     break;
                 }
@@ -575,29 +562,12 @@ class ImportDB
         return $arr;
     }
 
-    public function deleteAllProducts()
-    {
-        $save_shop_id = $this->context->shop->id;
-        $save_shop_context = Shop::getContext();
-        $shop_ids = Shop::getShops(false, null, true);
-
-        foreach ($shop_ids as $shop_id) {
-            Shop::setContext(Shop::CONTEXT_SHOP, (int)$shop_id);
-            $this->context->shop->id = (int)$shop_id;
-            $products = Product::getProducts($this->language_id, 0, 0, 'id_product', 'ASC', false, false, $this->context);
-
-            foreach ($products as $product) {
-                $productObject = new Product($product['id_product'], true);
-                $productObject->delete();
-            }
-        }
-
-        $this->context->shop->id = $save_shop_id;
-        Shop::setContext($save_shop_context);
-    }
-
     public function getProducts()
     {
+        if (!empty($this->products)) {
+            return $this->products;
+        }
+
         $save_shop_id = $this->context->shop->id;
         $save_shop_context = Shop::getContext();
         $shop_ids = Shop::getShops(false, null, true);
@@ -755,5 +725,10 @@ class ImportDB
             }
         }
         return $path;
+    }
+
+    public function __destruct()
+    {
+        \Tools::clearCache();
     }
 }

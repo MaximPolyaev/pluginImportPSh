@@ -114,9 +114,7 @@ class AdminImportpalmiraController extends ModuleAdminController
         $import_matches = Tools::getValue('importpalmira_type_value');
 
         $fileReader = (new FileReader($import_file_path))->init();
-
         $import_data = $fileReader->getData(0, 1, $num_skip_rows) ?? 'error';
-
         if ($import_data === 'error') {
             WebHelpers::echoJson([
                 'response' => 'true',
@@ -127,37 +125,32 @@ class AdminImportpalmiraController extends ModuleAdminController
         }
 
         $import_data = ImportHelper::optimize_matching($import_data, $import_matches);
+        $importDb = new ImportDB($this);
+        $products = $importDb->getProducts();
 
-        WebHelpers::echoJson(['response' => 'true', 'import_status' => true]);
+        $counter = 0;
+        $import_status = true;
+        $main_error_msg = '';
+        foreach ($import_data as $product_item) {
+            try {
+                $importDb->send($product_item);
+            } catch (Exception $e) {
+                $import_status = false;
+                $main_error_msg = "File: {$e->getFile()}. Line: {$e->getLine()}. {$e->getMessage()}";
+            }
+        }
+
+        WebHelpers::echoJson([
+            'response' => 'true',
+            'import_status' => $import_status,
+            'main_error_msg' => $main_error_msg
+        ]);
         die;
     }
 
     public function ajaxProcessTestAjax()
     {
-        set_time_limit(0);
-        $import_file_path = Tools::getValue('importpalmira_import_file_path');
-
-        $fileReader = (new FileReader($import_file_path))->init();
-
-        $import_matches = Tools::getValue('importpalmira_type_value');
-        $import_headers = $fileReader->getHeaders() ?? 'error';
-        $import_data = $fileReader->getData(0, 400) ?? 'error';
-
-        if ($import_headers === 'error' || $import_data === 'error') {
-            WebHelpers::echoJson([
-                'response' => 'true',
-                'import_status' => false,
-                'errors' => $fileReader->getErrors()
-            ]);
-            die;
-        }
-
-        $import_data = ImportHelper::optimize_matching($import_data, $import_matches);
-
-        VarDumper::dump($import_data);
-        $importDb = new ImportDB($this, $import_data);
-
-        WebHelpers::echoJson(['response' => 'true', 'import_status' => true]);
+        WebHelpers::echoJson(['response' => 'true', 'ajaxprocesstestajax' => true]);
         die;
     }
 
