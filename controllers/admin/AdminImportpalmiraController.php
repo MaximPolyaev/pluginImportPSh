@@ -26,7 +26,7 @@ class AdminImportpalmiraController extends ModuleAdminController
 
     public function ajaxProcessGetProgress()
     {
-        switch(Tools::getValue('type_task')) {
+        switch (Tools::getValue('type_task')) {
             case 'import_products':
                 $progress = ProgressManager::getProgress();
                 $count_progress = ProgressManager::getImportProgressNum();
@@ -61,7 +61,7 @@ class AdminImportpalmiraController extends ModuleAdminController
     public function ajaxProcessProgressNew()
     {
         $full_progress_count = 0;
-        switch(Tools::getValue('type_task')) {
+        switch (Tools::getValue('type_task')) {
             case 'delete_all_products':
                 $products = Product::getProducts(
                     $this->context->language->id,
@@ -110,7 +110,7 @@ class AdminImportpalmiraController extends ModuleAdminController
     {
         set_time_limit(0);
 
-        switch(Tools::getValue('type_task')) {
+        switch (Tools::getValue('type_task')) {
             case 'import_products':
                 $this->importProducts();
                 die;
@@ -130,7 +130,7 @@ class AdminImportpalmiraController extends ModuleAdminController
     {
         set_time_limit(0);
 
-        switch(Tools::getValue('type_task')) {
+        switch (Tools::getValue('type_task')) {
             case 'import_products':
                 $this->importProducts();
                 break;
@@ -229,12 +229,34 @@ class AdminImportpalmiraController extends ModuleAdminController
             return;
         }
 
+        $shop_ids = Shop::getShops(false, null, true);
+        $products = [];
+        foreach ($shop_ids as $shop_id) {
+            Shop::setContext(Shop::CONTEXT_SHOP, (int)$shop_id);
+            $this->context->shop->id = (int)$shop_id;
+
+            $products = array_merge(
+                $products,
+                Product::getProducts(
+                    $this->context->language->id,
+                    0,
+                    0,
+                    'id_product',
+                    'DESC',
+                    false,
+                    false,
+                    $this->context
+                )
+            );
+        }
+
         $manager = new ProgressManager($task_id);
-        $products = Product::getProducts($this->context->language->id, 0, 0, 'id_product', 'DESC', false, false, $this->context);
         $manager->setStepCount(count($products));
 
         foreach ($products as $product) {
             if (isset($product['id_product'])) {
+                Shop::setContext(Shop::CONTEXT_SHOP, (int)$product['id_shop']);
+                $this->context->shop->id = (int)$product['id_shop'];
                 $productObject = new Product($product['id_product'], true);
                 $productObject->delete();
 
