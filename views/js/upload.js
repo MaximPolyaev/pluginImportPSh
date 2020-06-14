@@ -30,23 +30,32 @@ class LongTask {
   is_progress_end = true;
   finishedTasks = [];
 
-  startLongTask = (task_id) => {
+  startLongTask = (task_id, progress_num = 'none') => {
     jQuery.ajax({
       type: 'POST',
       headers: {'cache-control': 'no-cache'},
-      url: importpalmira_ajax,
+      url: importpalmira_ajax + '&long=long',
       dataType: 'json',
       data: {
         ajax: true,
         action: 'longprogress',
         type_task: this.type_task,
+        importpalmira_import_file_path,
+        importpalmira_type_value,
+        importpalmira_num_skip_rows,
+        progress_num: progress_num,
         task: task_id
       },
       success: (data) => {
         if (data.status_progress !== undefined) {
           if (data.status_progress === 'next') {
             console.log('start long task next, id:', task_id);
-            this.startLongTask(task_id);
+            if (this.type_task === 'import_products' && data.progress_num !== undefined) {
+              console.log('data.progress_num', data.progress_num);
+              this.startLongTask(task_id, data.progress_num);
+            } else {
+              this.startLongTask(task_id);
+            }
           }
 
           if (data.status_progress === 'end') {
@@ -93,10 +102,17 @@ class LongTask {
           return;
         }
 
-        if (data.progress !== undefined && data.remaining_progress_num) {
+        if (data.progress !== undefined && data.remaining_progress_num !== undefined) {
           console.log('monitor progress, set progress', data.progress);
           console.log('monitor progress, set progress for task id:', task_id);
           this.setProgress(data.remaining_progress_num);
+        }
+
+        if (data.progress !== undefined && data.progress_num !== undefined) {
+          if (data.progress !== null) {
+            console.log('import progress', data.progress_num);
+            this.setProgress(data.progress_num);
+          }
         }
 
         setTimeout( () => {
@@ -124,6 +140,8 @@ class LongTask {
       data: {
         ajax: true,
         action: 'progressnew',
+        importpalmira_import_file_path,
+        importpalmira_num_skip_rows,
         type_task: this.type_task
       },
       success: (data) => {
@@ -149,7 +167,11 @@ class LongTask {
     if (this.full_progress_count === value) {
       progress_value = 0;
     } else if (is_remaining_pgs_num) {
-      progress_value = (this.full_progress_count - value) / (this.full_progress_count * 0.01);
+      if (this.type_task === 'delete_all_products') {
+        progress_value = (this.full_progress_count - value) / (this.full_progress_count * 0.01);
+      } else if (this.type_task === 'import_products') {
+        progress_value = value / (this.full_progress_count * 0.01);
+      }
     }
 
     document.getElementById('importpalmira_progress_view').style.width = progress_value + '%';
@@ -191,8 +213,12 @@ document.addEventListener('DOMContentLoaded', function () {
   const btnStart = document.querySelector('#btnstartprogress');
   const longTask = new LongTask();
   btnStart.addEventListener('click', () => {
-    if (longTask.is_progress_end) {
-      longTask.runTask('delete_all_products');
+    if (longTask.is_progress_end && importpalmira_delete_products !== undefined) {
+      if (importpalmira_delete_products) {
+        longTask.runTask('delete_all_products');
+      } else {
+        longTask.runTask('import_products');
+      }
     }
   });
 });

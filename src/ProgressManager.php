@@ -34,7 +34,7 @@ class ProgressManager
     //Увеличение прогресса на 1 (переход к следующему шагу)
     public function incrementProgress()
     {
-        if(++$this->current_step >= $this->step_count)
+        if (++$this->current_step >= $this->step_count)
             $this->current_step = $this->step_count;
 
         SessionHelper::init();
@@ -43,6 +43,13 @@ class ProgressManager
         SessionHelper::close();
 
         header_remove('Set-Cookie');
+    }
+
+    public function incrementProgressImportNum($val)
+    {
+        SessionHelper::init();
+        SessionHelper::set('progressimport' . $this->task_id, $val);
+        SessionHelper::close();
     }
 
     //Завершение подсчета прогресса
@@ -56,13 +63,28 @@ class ProgressManager
     public static function getProgress()
     {
         $task_id = TaskHelper::getTaskId();
-        if($task_id === null)
+        if ($task_id === null)
             return null;
 
         $session_initializer = new SessionInitializer;
         $progress = SessionHelper::get('progress' . $task_id, null);
 
-        if($progress === null)
+        if ($progress === null)
+            return null;
+
+        return (int)$progress;
+    }
+
+    public static function getImportProgressNum()
+    {
+        $task_id = TaskHelper::getTaskId();
+        if ($task_id === null)
+            return null;
+
+        $session_initializer = new SessionInitializer;
+        $progress = SessionHelper::get('progressimport' . $task_id, null);
+
+        if ($progress === null)
             return null;
 
         return (int)$progress;

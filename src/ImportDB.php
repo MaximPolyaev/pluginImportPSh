@@ -120,7 +120,6 @@ class ImportDB
         if ($is_update) {
             $productObj->update();
         } else {
-            VarDumper::dump('dump add');
             $productObj->add();
         }
 
@@ -261,7 +260,6 @@ class ImportDB
         }
 
         if (isset($import_product['image'])) {
-            VarDumper::dump(Shop::getContext());
             $images_url = explode(',', $import_product['image']);
             $images_url = array_map(function($image_url) {
                 return trim($image_url);
@@ -305,7 +303,7 @@ class ImportDB
 
     /**
      * @param $productObj Product
-     * @param $info
+     * @param $import_product
      */
     public function addSimpleFields($productObj, $import_product)
     {
@@ -569,7 +567,6 @@ class ImportDB
         }
 
         $save_shop_id = $this->context->shop->id;
-        $save_shop_context = Shop::getContext();
         $shop_ids = Shop::getShops(false, null, true);
 
         $products = [];
@@ -580,7 +577,8 @@ class ImportDB
         }
 
         $this->context->shop->id = $save_shop_id;
-        Shop::setContext($save_shop_context);
+        $shops_ids = array_values(Shop::getShops(false, null, true));
+        Shop::setContext(Shop::CONTEXT_SHOP, $shops_ids[0]);
         return $products;
     }
 

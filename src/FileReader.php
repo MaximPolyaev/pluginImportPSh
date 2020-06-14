@@ -6,6 +6,7 @@ namespace MaximCode\ImportPalmira;
 
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\VarDumper\VarDumper;
 
 class FileReader
 {
@@ -109,7 +110,7 @@ class FileReader
             $this->data[] = $this->headers;
             $this->data_from++;
         } else if ((int) $this->num_skip_rows > 0) {
-            $this->data_from += $this->num_skip_rows;
+            $this->data_from += (int) $this->num_skip_rows;
         }
 
         $to = $this->data_from + $this->data_limit;

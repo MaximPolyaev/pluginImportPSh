@@ -2,7 +2,6 @@
 
 use MaximCode\ImportPalmira\FileReader;
 use MaximCode\ImportPalmira\ImportDB;
-use MaximCode\ImportPalmira\ImportDBnew;
 use MaximCode\ImportPalmira\ImportHelper;
 use MaximCode\ImportPalmira\JsonCfg;
 use MaximCode\ImportPalmira\ProgressManager;
@@ -27,34 +26,78 @@ class AdminImportpalmiraController extends ModuleAdminController
 
     public function ajaxProcessGetProgress()
     {
-        $progress = ProgressManager::getProgress();
-        $count_products = count(Product::getProducts($this->context->language->id, 0, 0, 'id_product', 'DESC', false, false, $this->context));
-        if ($progress !== null)
-            WebHelpers::echoJson([
-                'progress' => $progress,
-                'session' => isset($_SESSION) ? $_SESSION : null,
-                'remaining_progress_num' => $count_products
-            ]);
-        else
-            WebHelpers::echoJson([]);
+        switch(Tools::getValue('type_task')) {
+            case 'import_products':
+                $progress = ProgressManager::getProgress();
+                $count_progress = ProgressManager::getImportProgressNum();
 
-        exit;
+                WebHelpers::echoJson([
+                    'progress' => $progress,
+                    'session' => isset($_SESSION) ? $_SESSION : null,
+                    'progress_num' => $count_progress
+                ]);
+                die;
+            case 'delete_all_products':
+                $progress = ProgressManager::getProgress();
+                $count_products = count(Product::getProducts($this->context->language->id, 0, 0, 'id_product', 'DESC', false, false, $this->context));
+                if ($progress !== null)
+                    WebHelpers::echoJson([
+                        'progress' => $progress,
+                        'session' => isset($_SESSION) ? $_SESSION : null,
+                        'remaining_progress_num' => $count_products
+                    ]);
+                else
+                    WebHelpers::echoJson([]);
+                die;
+            default:
+                WebHelpers::echoJson([
+                    'response' => 'true',
+                    'type_task' => 'empty'
+                ]);
+                die;
+        }
     }
 
     public function ajaxProcessProgressNew()
     {
-        $products = Product::getProducts(
-            $this->context->language->id,
-            0,
-            0,
-            'id_product',
-            'DESC',
-            false,
-            false,
-            $this->context
-        );
+        $full_progress_count = 0;
+        switch(Tools::getValue('type_task')) {
+            case 'delete_all_products':
+                $products = Product::getProducts(
+                    $this->context->language->id,
+                    0,
+                    0,
+                    'id_product',
+                    'DESC',
+                    false,
+                    false,
+                    $this->context
+                );
 
-        $full_progress_count = count($products);
+                $full_progress_count = count($products);
+                break;
+            case 'import_products':
+                $import_file_path = Tools::getValue('importpalmira_import_file_path');
+                $num_skip_rows = Tools::getValue('importpalmira_num_skip_rows');
+
+                $fileReader = (new FileReader($import_file_path))->init();
+                $import_data = $fileReader->getData(0, 0, $num_skip_rows) ?? 'error';
+                if (empty($import_data) || $import_data === 'error') {
+                    WebHelpers::echoJson([
+                        'response' => 'true',
+                        'type_task' => 'empty'
+                    ]);
+                    die;
+                }
+                $full_progress_count = count($import_data);
+                break;
+            default:
+                WebHelpers::echoJson([
+                    'response' => 'true',
+                    'type_task' => 'empty'
+                ]);
+                die;
+        }
 
         WebHelpers::echoJson([
             'task' => TaskHelper::generateTaskId(),
@@ -66,6 +109,119 @@ class AdminImportpalmiraController extends ModuleAdminController
     public function ajaxProcessLongProgress()
     {
         set_time_limit(0);
+
+        switch(Tools::getValue('type_task')) {
+            case 'import_products':
+                $this->importProducts();
+                die;
+            case 'delete_all_products':
+                $this->deleteProducts();
+                die;
+            default:
+                WebHelpers::echoJson([
+                    'response' => 'true',
+                    'type_task' => 'empty'
+                ]);
+                die;
+        }
+    }
+
+    public function ajaxProcessImportOne()
+    {
+        set_time_limit(0);
+
+        switch(Tools::getValue('type_task')) {
+            case 'import_products':
+                $this->importProducts();
+                break;
+            case 'delete_products':
+                $this->deleteProducts();
+                break;
+            default:
+                WebHelpers::echoJson([
+                    'response' => 'true',
+                    'type_task' => 'empty'
+                ]);
+                die;
+        }
+        die;
+    }
+
+    private function importProducts()
+    {
+        $start_time = microtime(true);
+
+        $task_id = TaskHelper::getTaskId();
+        if ($task_id === null) {
+            return;
+        }
+
+        $import_file_path = Tools::getValue('importpalmira_import_file_path');
+        $num_skip_rows = Tools::getValue('importpalmira_num_skip_rows');
+        $import_matches = Tools::getValue('importpalmira_type_value');
+        $progress_num = Tools::getValue('progress_num') ? Tools::getValue('progress_num') : 0;
+        $progress_num = $progress_num === 'none' ? 0 : $progress_num;
+
+        $fileReader = (new FileReader($import_file_path))->init();
+        $import_data = $fileReader->getData($progress_num, 0, $num_skip_rows) ?? 'error';
+        if ($import_data === 'error') {
+            WebHelpers::echoJson([
+                'response' => 'true',
+                'import_status' => false,
+                'errors' => $fileReader->getErrors(),
+                'status_progress' => 'end',
+            ]);
+            die;
+        }
+
+        $manager = new ProgressManager($task_id);
+        $manager->setStepCount(count($import_data));
+
+        $import_data = ImportHelper::optimize_matching($import_data, $import_matches);
+        $importDb = new ImportDB($this);
+        $products = $importDb->getProducts();
+
+        $counter = $progress_num;
+        $import_status = true;
+        $main_error_msg = '';
+        foreach ($import_data as $product_item) {
+            $end_time = microtime(true) - $start_time;
+            try {
+                $importDb->send($product_item);
+            } catch (Exception $e) {
+                $import_status = false;
+                $main_error_msg = "File: {$e->getFile()}. Line: {$e->getLine()}. {$e->getMessage()}";
+            }
+
+            $counter++;
+            $manager->incrementProgress();
+            $manager->incrementProgressImportNum($counter);
+
+            if ($end_time > 10) {
+                WebHelpers::echoJson([
+                    'endlongprogress' => true,
+                    'endtime' => $end_time,
+                    'status_progress' => 'next',
+                    'current_progress' => SessionHelper::get('progress' . $task_id),
+                    'progress_num' => $counter,
+                    'session' => $_SESSION
+                ]);
+                exit;
+            }
+        }
+
+        WebHelpers::echoJson([
+            'response' => 'true',
+            'import_status' => $import_status,
+            'main_error_msg' => $main_error_msg,
+            'progress_num' => $counter,
+            'status_progress' => 'end',
+        ]);
+        die;
+    }
+
+    private function deleteProducts()
+    {
         $start_time = microtime(true);
 
         $task_id = TaskHelper::getTaskId();
@@ -103,77 +259,7 @@ class AdminImportpalmiraController extends ModuleAdminController
             'endtime' => microtime(true) - $start_time,
             'status_progress' => 'end'
         ]);
-        exit;
-    }
-
-    public function ajaxProcessImportOne()
-    {
-        set_time_limit(0);
-
-        switch(Tools::getValue('type_task')) {
-            case 'import_products':
-                $this->importProducts();
-                break;
-            case 'delete_products':
-                $this->deleteProducts();
-                break;
-            default:
-                WebHelpers::echoJson([
-                    'response' => 'true',
-                    'type_task' => 'empty'
-                ]);
-                die;
-        }
         die;
-    }
-
-    private function importProducts()
-    {
-        $import_file_path = Tools::getValue('importpalmira_import_file_path');
-        $num_skip_rows = Tools::getValue('importpalmira_num_skip_rows');
-        $import_matches = Tools::getValue('importpalmira_type_value');
-        $progress_num = Tools::getValue('progress_num') ? Tools::getValue('progress_num') : 0;
-
-        $fileReader = (new FileReader($import_file_path))->init();
-        $import_data = $fileReader->getData($progress_num, 10, $num_skip_rows) ?? 'error';
-        if ($import_data === 'error') {
-            WebHelpers::echoJson([
-                'response' => 'true',
-                'import_status' => false,
-                'errors' => $fileReader->getErrors()
-            ]);
-            die;
-        }
-
-        $import_data = ImportHelper::optimize_matching($import_data, $import_matches);
-        $importDb = new ImportDB($this);
-        $products = $importDb->getProducts();
-
-        $counter = $progress_num;
-        $import_status = true;
-        $main_error_msg = '';
-        foreach ($import_data as $product_item) {
-            try {
-                $importDb->send($product_item);
-            } catch (Exception $e) {
-                $import_status = false;
-                $main_error_msg = "File: {$e->getFile()}. Line: {$e->getLine()}. {$e->getMessage()}";
-            }
-            $counter++;
-        }
-
-        WebHelpers::echoJson([
-            'response' => 'true',
-            'import_status' => $import_status,
-            'main_error_msg' => $main_error_msg,
-            'progress_num' => $counter
-        ]);
-        die;
-    }
-
-    private function deleteProducts()
-    {
-
     }
 
     public function ajaxProcessTestAjax()
