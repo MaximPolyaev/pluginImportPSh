@@ -47,11 +47,13 @@ class LongTask {
         task: task_id
       },
       success: (data) => {
+        if (data.messages !== undefined && Array.isArray(data.messages)) {
+          this.viewDebugMessages(data.messages);
+        }
+
         if (data.status_progress !== undefined) {
           if (data.status_progress === 'next') {
-            console.log('start long task next, id:', task_id);
             if (this.type_task === 'import_products' && data.progress_num !== undefined) {
-              console.log('data.progress_num', data.progress_num);
               this.startLongTask(task_id, data.progress_num);
             } else {
               this.startLongTask(task_id);
@@ -59,7 +61,6 @@ class LongTask {
           }
 
           if (data.status_progress === 'end') {
-            console.log('start long task end, id', task_id);
             this.finishedTasks.push(task_id);
           }
         }
@@ -84,8 +85,11 @@ class LongTask {
           jQuery('#importpalmira-num-products').text(data.count_products);
         }
 
+        if (data.messages !== undefined && Array.isArray(data.messages)) {
+          this.viewDebugMessages(data.messages);
+        }
+
         if (jQuery.inArray(task_id, this.finishedTasks) != -1) {
-          console.log('monitor progress, finish task id:', task_id);
           if (this.type_task === 'delete_all_products') {
             this.is_progress_end = true;
             this.setProgress(100, false);
@@ -103,14 +107,11 @@ class LongTask {
         }
 
         if (data.progress !== undefined && data.remaining_progress_num !== undefined) {
-          console.log('monitor progress, set progress', data.progress);
-          console.log('monitor progress, set progress for task id:', task_id);
           this.setProgress(data.remaining_progress_num);
         }
 
         if (data.progress !== undefined && data.progress_num !== undefined) {
           if (data.progress !== null) {
-            console.log('import progress', data.progress_num);
             this.setProgress(data.progress_num);
           }
         }
@@ -145,7 +146,6 @@ class LongTask {
         type_task: this.type_task
       },
       success: (data) => {
-        console.log('run task, data:', data);
 
         if (data.full_progress_count !== undefined) {
           this.full_progress_count = data.full_progress_count;
@@ -200,6 +200,17 @@ class LongTask {
     console.log('status import its OKAY');
   };
 
+  viewDebugMessages(messages) {
+    const debugLog = document.getElementById('importpalmira-debug_log');
+    messages.forEach(message => {
+      const p = document.createElement('p');
+      p.innerHTML = message.trim();
+      debugLog.appendChild(p);
+    });
+
+    debugLog.scrollTop = debugLog.scrollHeight;
+  }
+
   ajaxErrorCallback = (jqXHR, testStatus, errorThrown) => {
     console.log(errorThrown);
   };
@@ -232,7 +243,7 @@ const testAjax = function () {
   testBtnAjax.addEventListener('click', () => {
     jQuery.ajax({
       type: 'POST',
-      url: importpalmira_ajax,
+      url: importpalmira_ajax + "&testtask=testtask",
       // dataType: 'json',
       data: {
         ajax: true,

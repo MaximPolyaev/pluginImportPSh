@@ -52,6 +52,16 @@ class ProgressManager
         SessionHelper::close();
     }
 
+    public function setProgressMessage($message)
+    {
+        $messages = self::getProgressMessages();
+        $messages[] = $message;
+
+        SessionHelper::init();
+        SessionHelper::set('progressdelmessages' . $this->task_id, $messages);
+        SessionHelper::close();
+    }
+
     //Завершение подсчета прогресса
     public function __destruct()
     {
@@ -88,5 +98,23 @@ class ProgressManager
             return null;
 
         return (int)$progress;
+    }
+
+    public static function getProgressMessages($delete_messages = false)
+    {
+        $task_id = TaskHelper::getTaskId();
+        if ($task_id === null)
+            return null;
+
+        $session_initializer = new SessionInitializer;
+        $messages = SessionHelper::get('progressdelmessages' . $task_id, null);
+        if ($delete_messages) {
+            SessionHelper::remove('progressdelmessages' . $task_id);
+        }
+
+        if ($messages === null)
+            return [];
+
+        return $messages;
     }
 }

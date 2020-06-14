@@ -80,7 +80,7 @@ final class SessionHelper
     //Если ключ отсутствует, будет возвращено значение $default_value
     static public function get($name, $default_value = null)
     {
-        return isset($_SESSION['IMPORT_PALMIRA']['PGS'][$name]) && !is_array($_SESSION['IMPORT_PALMIRA']['PGS'][$name])
+        return isset($_SESSION['IMPORT_PALMIRA']['PGS'][$name])
             ? $_SESSION['IMPORT_PALMIRA']['PGS'][$name] : $default_value;
     }
 

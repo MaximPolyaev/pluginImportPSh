@@ -34,7 +34,8 @@ class AdminImportpalmiraController extends ModuleAdminController
                 WebHelpers::echoJson([
                     'progress' => $progress,
                     'session' => isset($_SESSION) ? $_SESSION : null,
-                    'progress_num' => $count_progress
+                    'progress_num' => $count_progress,
+                    'messages' => ProgressManager::getProgressMessages(true)
                 ]);
                 die;
             case 'delete_all_products':
@@ -44,7 +45,8 @@ class AdminImportpalmiraController extends ModuleAdminController
                     WebHelpers::echoJson([
                         'progress' => $progress,
                         'session' => isset($_SESSION) ? $_SESSION : null,
-                        'remaining_progress_num' => $count_products
+                        'remaining_progress_num' => $count_products,
+                        'messages' => ProgressManager::getProgressMessages(true)
                     ]);
                 else
                     WebHelpers::echoJson([]);
@@ -89,7 +91,7 @@ class AdminImportpalmiraController extends ModuleAdminController
                     ]);
                     die;
                 }
-                $full_progress_count = count($import_data);
+                $full_progress_count = count($import_data !== 'error' ? $import_data : []);
                 break;
             default:
                 WebHelpers::echoJson([
@@ -170,12 +172,13 @@ class AdminImportpalmiraController extends ModuleAdminController
                 'import_status' => false,
                 'errors' => $fileReader->getErrors(),
                 'status_progress' => 'end',
+                'messages' => ProgressManager::getProgressMessages(true)
             ]);
             die;
         }
 
         $manager = new ProgressManager($task_id);
-        $manager->setStepCount(count($import_data));
+        $manager->setStepCount(count($import_data !== 'error' ? $import_data : []));
 
         $import_data = ImportHelper::optimize_matching($import_data, $import_matches);
         $importDb = new ImportDB($this);
@@ -196,6 +199,7 @@ class AdminImportpalmiraController extends ModuleAdminController
             $counter++;
             $manager->incrementProgress();
             $manager->incrementProgressImportNum($counter);
+            $manager->setProgressMessage("Import Product: " . implode('; ', array_map(function($field) {return htmlspecialchars($field);}, $product_item)));
 
             if ($end_time > 10) {
                 WebHelpers::echoJson([
@@ -204,7 +208,8 @@ class AdminImportpalmiraController extends ModuleAdminController
                     'status_progress' => 'next',
                     'current_progress' => SessionHelper::get('progress' . $task_id),
                     'progress_num' => $counter,
-                    'session' => $_SESSION
+                    'session' => $_SESSION,
+                    'messages' => ProgressManager::getProgressMessages(true)
                 ]);
                 exit;
             }
@@ -216,6 +221,7 @@ class AdminImportpalmiraController extends ModuleAdminController
             'main_error_msg' => $main_error_msg,
             'progress_num' => $counter,
             'status_progress' => 'end',
+            'messages' => ProgressManager::getProgressMessages(true)
         ]);
         die;
     }
@@ -249,7 +255,6 @@ class AdminImportpalmiraController extends ModuleAdminController
                 )
             );
         }
-
         $manager = new ProgressManager($task_id);
         $manager->setStepCount(count($products));
 
@@ -260,6 +265,8 @@ class AdminImportpalmiraController extends ModuleAdminController
                 $productObject = new Product($product['id_product'], true);
                 $productObject->delete();
 
+                $manager->setProgressMessage("Delete product. Name: {$product['name']}. ID: {$product['id_product']}");
+
                 $manager->incrementProgress();
 
                 $end_time = microtime(true) - $start_time;
@@ -269,7 +276,8 @@ class AdminImportpalmiraController extends ModuleAdminController
                         'endtime' => $end_time,
                         'status_progress' => 'next',
                         'current_progress' => SessionHelper::get('progress' . $task_id),
-                        'session' => $_SESSION
+                        'session' => $_SESSION,
+                        'messages' => ProgressManager::getProgressMessages(true)
                     ]);
                     exit;
                 }
@@ -279,14 +287,18 @@ class AdminImportpalmiraController extends ModuleAdminController
         WebHelpers::echoJson([
             'endlongprogress' => true,
             'endtime' => microtime(true) - $start_time,
-            'status_progress' => 'end'
+            'status_progress' => 'end',
+            'messages' => ProgressManager::getProgressMessages(true)
         ]);
         die;
     }
 
     public function ajaxProcessTestAjax()
     {
-        WebHelpers::echoJson(['response' => 'true', 'ajaxprocesstestajax' => true]);
+        WebHelpers::echoJson([
+            'response' => 'true',
+            'ajaxprocesstestajax' => true
+        ]);
         die;
     }
 
