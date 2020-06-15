@@ -53,7 +53,7 @@ class ImportDB
         Shop::setContext(Shop::CONTEXT_SHOP, $shops_ids[0]);
     }
 
-    public function send($import_product)
+    public function send($import_product, $is_force_id = false)
     {
         $is_update = $this->isUpdate($import_product);
 
@@ -75,6 +75,7 @@ class ImportDB
 
         if (isset($import_product['id'])) {
             $productObj->id = $import_product['id'];
+            $productObj->force_id = $is_force_id;
         }
 
         $this->addSimpleFields($productObj, $import_product);

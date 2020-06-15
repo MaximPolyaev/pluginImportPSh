@@ -172,6 +172,7 @@ class AdminImportpalmiraController extends ModuleAdminController
         $import_file_path = Tools::getValue('importpalmira_import_file_path');
         $num_skip_rows = Tools::getValue('importpalmira_num_skip_rows');
         $import_matches = Tools::getValue('importpalmira_type_value');
+        $is_force_id = (bool)Tools::getValue('importpalmira_force_id');
         $progress_num = Tools::getValue('progress_num') ? Tools::getValue('progress_num') : 0;
         $progress_num = $progress_num === 'none' ? 0 : $progress_num;
 
@@ -204,7 +205,7 @@ class AdminImportpalmiraController extends ModuleAdminController
         foreach ($import_data as $product_item) {
             $end_time = microtime(true) - $start_time;
             try {
-                $importDb->send($product_item);
+                $importDb->send($product_item, $is_force_id);
             } catch (Exception $e) {
                 $import_status = false;
                 $manager->setProgressError("Import error. Product: " . implode('; ', array_map(function($field) {return htmlspecialchars($field);}, $product_item)) . "File: {$e->getFile()}. Line: {$e->getLine()}. {$e->getMessage()}");

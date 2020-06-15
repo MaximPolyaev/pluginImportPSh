@@ -43,6 +43,7 @@ class LongTask {
         importpalmira_import_file_path,
         importpalmira_type_value,
         importpalmira_num_skip_rows,
+        importpalmira_force_id,
         progress_num: progress_num,
         task: task_id
       },
