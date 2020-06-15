@@ -62,6 +62,10 @@
       </div>
     </div>
 
+    <div id="importpalmira-debug_errors">
+      <p>Error</p>
+    </div>
+
     <div id="importpalmira-debug_log">
       <p>Message</p>
     </div>

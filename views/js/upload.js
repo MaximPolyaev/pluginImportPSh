@@ -51,6 +51,10 @@ class LongTask {
           this.viewDebugMessages(data.messages);
         }
 
+        if (data.errors !== undefined && Array.isArray(data.errors)) {
+          this.viewDebugErrors(data.errors);
+        }
+
         if (data.status_progress !== undefined) {
           if (data.status_progress === 'next') {
             if (this.type_task === 'import_products' && data.progress_num !== undefined) {
@@ -87,6 +91,10 @@ class LongTask {
 
         if (data.messages !== undefined && Array.isArray(data.messages)) {
           this.viewDebugMessages(data.messages);
+        }
+
+        if (data.errors !== undefined && Array.isArray(data.errors)) {
+          this.viewDebugErrors(data.errors);
         }
 
         if (jQuery.inArray(task_id, this.finishedTasks) != -1) {
@@ -209,6 +217,17 @@ class LongTask {
     });
 
     debugLog.scrollTop = debugLog.scrollHeight;
+  }
+
+  viewDebugErrors(errors) {
+    const errorLog = document.getElementById('importpalmira-debug_errors');
+    errors.forEach(error => {
+      const p = document.createElement('p');
+      p.innerHTML = error.trim();
+      errorLog.appendChild(p);
+    });
+
+    errorLog.scrollTop = errorLog.scrollHeight;
   }
 
   ajaxErrorCallback = (jqXHR, testStatus, errorThrown) => {

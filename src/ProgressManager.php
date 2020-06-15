@@ -4,6 +4,8 @@
 namespace MaximCode\ImportPalmira;
 
 
+use Symfony\Component\VarDumper\VarDumper;
+
 class ProgressManager
 {
     //Идентификатор задачи
@@ -62,6 +64,16 @@ class ProgressManager
         SessionHelper::close();
     }
 
+    public function setProgressError($error)
+    {
+        $errors = self::getProgressErrors();
+        $errors[] = $error;
+
+        SessionHelper::init();
+        SessionHelper::set('progresserrors' . $this->task_id, $errors);
+        SessionHelper::close();
+    }
+
     //Завершение подсчета прогресса
     public function __destruct()
     {
@@ -116,5 +128,26 @@ class ProgressManager
             return [];
 
         return $messages;
+    }
+
+    public static function getProgressErrors($delete_errors = false)
+    {
+        $task_id = TaskHelper::getTaskId();
+        if ($task_id === null) {
+            return null;
+        }
+
+        $session_initializer = new SessionInitializer;
+        $errors = SessionHelper::get('progresserrors' . $task_id, null);
+
+        if ($errors === null) {
+            return [];
+        }
+
+        if ($delete_errors) {
+            SessionHelper::remove('progresserrors' . $task_id);
+        }
+
+        return $errors;
     }
 }

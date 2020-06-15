@@ -26,37 +26,48 @@ class AdminImportpalmiraController extends ModuleAdminController
 
     public function ajaxProcessGetProgress()
     {
-        switch (Tools::getValue('type_task')) {
-            case 'import_products':
-                $progress = ProgressManager::getProgress();
-                $count_progress = ProgressManager::getImportProgressNum();
+        try {
+            switch (Tools::getValue('type_task')) {
+                case 'import_products':
+                    $progress = ProgressManager::getProgress();
+                    $count_progress = ProgressManager::getImportProgressNum();
 
-                WebHelpers::echoJson([
-                    'progress' => $progress,
-                    'session' => isset($_SESSION) ? $_SESSION : null,
-                    'progress_num' => $count_progress,
-                    'messages' => ProgressManager::getProgressMessages(true)
-                ]);
-                die;
-            case 'delete_all_products':
-                $progress = ProgressManager::getProgress();
-                $count_products = count(Product::getProducts($this->context->language->id, 0, 0, 'id_product', 'DESC', false, false, $this->context));
-                if ($progress !== null)
                     WebHelpers::echoJson([
                         'progress' => $progress,
                         'session' => isset($_SESSION) ? $_SESSION : null,
-                        'remaining_progress_num' => $count_products,
-                        'messages' => ProgressManager::getProgressMessages(true)
+                        'progress_num' => $count_progress,
+                        'messages' => ProgressManager::getProgressMessages(true),
+                        'errors' => ProgressManager::getProgressErrors(true)
                     ]);
-                else
-                    WebHelpers::echoJson([]);
-                die;
-            default:
-                WebHelpers::echoJson([
-                    'response' => 'true',
-                    'type_task' => 'empty'
-                ]);
-                die;
+                    die;
+                case 'delete_all_products':
+                    $progress = ProgressManager::getProgress();
+                    $count_products = count(Product::getProducts($this->context->language->id, 0, 0, 'id_product', 'DESC', false, false, $this->context));
+                    if ($progress !== null)
+                        WebHelpers::echoJson([
+                            'progress' => $progress,
+                            'session' => isset($_SESSION) ? $_SESSION : null,
+                            'remaining_progress_num' => $count_products,
+                            'messages' => ProgressManager::getProgressMessages(true),
+                            'errors' => ProgressManager::getProgressErrors(true)
+                        ]);
+                    else
+                        WebHelpers::echoJson([]);
+                    die;
+                default:
+                    WebHelpers::echoJson([
+                        'response' => 'true',
+                        'type_task' => 'empty'
+                    ]);
+                    die;
+            }
+        } catch (Exception $e) {
+            WebHelpers::echoJson([
+                'response' => 'true',
+                'type_task' => 'empty',
+                'errors' => ['get progress error: ' . $e->getMessage()]
+            ]);
+            die;
         }
     }
 
@@ -170,9 +181,12 @@ class AdminImportpalmiraController extends ModuleAdminController
             WebHelpers::echoJson([
                 'response' => 'true',
                 'import_status' => false,
-                'errors' => $fileReader->getErrors(),
                 'status_progress' => 'end',
-                'messages' => ProgressManager::getProgressMessages(true)
+                'messages' => ProgressManager::getProgressMessages(true),
+                'errors' => array_merge(
+                    $fileReader->getErrors(),
+                    ProgressManager::getProgressErrors(true)
+                )
             ]);
             die;
         }
@@ -182,18 +196,18 @@ class AdminImportpalmiraController extends ModuleAdminController
 
         $import_data = ImportHelper::optimize_matching($import_data, $import_matches);
         $importDb = new ImportDB($this);
-        $products = $importDb->getProducts();
+//        $products = $importDb->getProducts();
 
         $counter = $progress_num;
         $import_status = true;
-        $main_error_msg = '';
+
         foreach ($import_data as $product_item) {
             $end_time = microtime(true) - $start_time;
             try {
                 $importDb->send($product_item);
             } catch (Exception $e) {
                 $import_status = false;
-                $main_error_msg = "File: {$e->getFile()}. Line: {$e->getLine()}. {$e->getMessage()}";
+                $manager->setProgressError("Import error. Product: " . implode('; ', array_map(function($field) {return htmlspecialchars($field);}, $product_item)) . "File: {$e->getFile()}. Line: {$e->getLine()}. {$e->getMessage()}");
             }
 
             $counter++;
@@ -209,7 +223,8 @@ class AdminImportpalmiraController extends ModuleAdminController
                     'current_progress' => SessionHelper::get('progress' . $task_id),
                     'progress_num' => $counter,
                     'session' => $_SESSION,
-                    'messages' => ProgressManager::getProgressMessages(true)
+                    'messages' => ProgressManager::getProgressMessages(true),
+                    'errors' => ProgressManager::getProgressErrors(true)
                 ]);
                 exit;
             }
@@ -218,10 +233,10 @@ class AdminImportpalmiraController extends ModuleAdminController
         WebHelpers::echoJson([
             'response' => 'true',
             'import_status' => $import_status,
-            'main_error_msg' => $main_error_msg,
             'progress_num' => $counter,
             'status_progress' => 'end',
-            'messages' => ProgressManager::getProgressMessages(true)
+            'messages' => ProgressManager::getProgressMessages(true),
+            'errors' => ProgressManager::getProgressErrors(true)
         ]);
         die;
     }
@@ -277,7 +292,8 @@ class AdminImportpalmiraController extends ModuleAdminController
                         'status_progress' => 'next',
                         'current_progress' => SessionHelper::get('progress' . $task_id),
                         'session' => $_SESSION,
-                        'messages' => ProgressManager::getProgressMessages(true)
+                        'messages' => ProgressManager::getProgressMessages(true),
+                        'errors' => ProgressManager::getProgressErrors(true)
                     ]);
                     exit;
                 }
@@ -288,7 +304,8 @@ class AdminImportpalmiraController extends ModuleAdminController
             'endlongprogress' => true,
             'endtime' => microtime(true) - $start_time,
             'status_progress' => 'end',
-            'messages' => ProgressManager::getProgressMessages(true)
+            'messages' => ProgressManager::getProgressMessages(true),
+            'errors' => ProgressManager::getProgressErrors(true)
         ]);
         die;
     }
