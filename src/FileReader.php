@@ -106,11 +106,17 @@ class FileReader
     {
         $counter = 0;
 
-        if ((int) $this->num_skip_rows === 0 && !empty($this->headers)) {
-            $this->data[] = $this->headers;
-            $this->data_from++;
-        } else if ((int) $this->num_skip_rows > 0) {
-            $this->data_from += (int) $this->num_skip_rows;
+        $this->data_from += (int)$this->num_skip_rows;
+
+        if (!empty($this->headers)) {
+            if ($this->data_from === 0) {
+                $this->data[] = $this->headers;
+                if ($this->data_limit > 0) {
+                    $this->data_limit--;
+                }
+            } else if ($this->data_from > 0) {
+                $this->data_from--;
+            }
         }
 
         $to = $this->data_from + $this->data_limit;
