@@ -38,6 +38,10 @@ class ImportDB
      */
     private $context;
     private $module;
+    /**
+     * @var ProgressManager
+     */
+    private $progressManager;
     private $shop_ids;
     private $shop_id;
     private $currency_id;
@@ -48,10 +52,11 @@ class ImportDB
     private $products;
     private $errors = [];
 
-    public function __construct($module)
+    public function __construct($module, $progressManager)
     {
         $this->module = $module;
         $this->context = $this->module->getContext();
+        $this->progressManager = $progressManager;
         $this->language_id = $this->context->language->id;
         $this->products = $this->getProducts();
         $this->default_lang = Configuration::get('PS_LANG_DEFAULT') ?? 1;
@@ -192,7 +197,7 @@ class ImportDB
             StockAvailable::setProductOutOfStock($productObj->id, $import_product['out_of_stock'], $this->shop_id);
         }
 
-        if (isset($import_product['reduction_percent']) && $import_product['reduction_percent']) {
+        if (isset($import_product['reduction_percent']) || $import_product['reduction_price']) {
             $this->addSpecificPrice($productObj->id, $import_product);
         }
 
@@ -532,33 +537,41 @@ class ImportDB
             $specific_price->id_currency = 0;
             $specific_price->id_country = 0;
             $specific_price->id_group = 0;
-            $specific_price->price = (isset($info['price']) && $info['price']) ? $info['price'] : -1;
+            $specific_price->price = -1;
             $specific_price->id_customer = 0;
-
             $specific_price->from_quantity = 1;
-
-//            if ($specific_price->price > 1) {
-//                $specific_price->reduction = 0;
-//                $specific_price->reduction_type ='amount';
-//            } else {
-//                $specific_price->reduction = (isset($info['reduction_price']) && $info['reduction_price']) ? (float)str_replace(',', '.', $info['reduction_price']) : $info['reduction_percent'] / 100;
-//                $specific_price->reduction_type = 'percentage';
-//            }
             $specific_price->reduction_tax = 1;
 
-            $specific_price->reduction = $info['reduction_percent'];
-            $specific_price->reduction_type = 'amount';
+            if (isset($info['reduction_percent']) && (bool)$info['reduction_percent']) {
+                $specific_price->reduction = (int)$info['reduction_percent'] * 0.01;
+                $specific_price->reduction_type = 'percentage';
+            } else if ($info['reduction_price'] && (bool)$info['reduction_price']) {
+                $specific_price->reduction = (int)$info['reduction_price'];
+                $specific_price->reduction_type = 'amount';
+            } else {
+                $this->progressManager->setProgressError('Product id: ' . $product_id .  '. Error add specific price. Reduced interest or price reduction is not allowed');
+                return;
+            }
 
-            $specific_price->from = '0000-00-00 00:00:00';
-//            $specific_price->from = (isset($info['reduction_from']) && \Validate::isDate($info['reduction_from'])) ? $info['reduction_from'] : '0000-00-00 00:00:00';
-            $specific_price->to = '0000-00-00 00:00:00';
-//            $specific_price->to = (isset($info['reduction_to']) && \Validate::isDate($info['reduction_to'])) ? $info['reduction_to'] : '0000-00-00 00:00:00';
+            if (isset($info['reduction_from']) && \Validate::isDate($info['reduction_from'])) {
+                $specific_price->from = $info['reduction_from'];
+            } else {
+                $specific_price->from = '0000-00-00 00:00:00';
+            }
+
+            if (isset($info['reduction_to']) && \Validate::isDate($info['reduction_to'])) {
+                $specific_price->to = $info['reduction_to'];
+            } else {
+                $specific_price->to = '0000-00-00 00:00:00';
+            }
 
             if (!$specific_price->save()) {
-                return Tools::displayError('An error occurred while updating the specific price.');
+                $this->progressManager->setProgressError('An error occurred while updating the specific price.');
+                return;
             }
         } catch (Exception $e) {
-            return Tools::displayError('An error occurred while updating the specific price. ' . $e);
+            $this->progressManager->setProgressError('An error occurred while updating the specific price. ' . $e);
+            return;
         }
     }
 

@@ -196,7 +196,7 @@ class AdminImportpalmiraController extends ModuleAdminController
         $manager->setStepCount(count($import_data !== 'error' ? $import_data : []));
 
         $import_data = ImportHelper::optimize_matching($import_data, $import_matches);
-        $importDb = new ImportDB($this);
+        $importDb = new ImportDB($this, $manager);
 //        $products = $importDb->getProducts();
 
         $counter = $progress_num;
