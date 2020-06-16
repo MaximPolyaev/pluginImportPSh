@@ -82,6 +82,7 @@ class ImportForm
             'IMPORTPALMIRA_CSV_SEPARATOR' => \Tools::getValue('IMPORTPALMIRA_CSV_SEPARATOR') ? \Tools::getValue('IMPORTPALMIRA_CSV_SEPARATOR') : ';',
             'IMPORTPALMIRA_FORCE_ID' => \Tools::getValue('IMPORTPALMIRA_FORCE_ID') ? \Tools::getValue('IMPORTPALMIRA_FORCE_ID') : false,
             'IMPORTPALMIRA_REFERENCE_KEY' => \Tools::getValue('IMPORTPALMIRA_REFERENCE_KEY') ? \Tools::getValue('IMPORTPALMIRA_REFERENCE_KEY') : 1,
+            'IMPORTPALMIRA_ONLY_UPDATE' => (bool)\Tools::getValue('IMPORTPALMIRA_ONLY_UPDATE'),
             'IMPORTPALMIRA_XML_SINGLE_NAME' => 'offer',
             'IMPORTPALMIRA_FILE_IMPORT' => '',
             'IMPORTPALMIRA_FILE_IMPORT_SAVE' => false,
@@ -177,38 +178,43 @@ class ImportForm
                     'options' => [
                         'query' => [
                             [
-                                'id_option' => 1,
+                                'id_option' => 'no',
                                 'name' => 'No reference'
                             ],
                             [
-                                'id_option' => 2,
+                                'id_option' => 'id',
                                 'name' => 'ID'
                             ],
                             [
-                                'id_option' => 3,
+                                'id_option' => 'name',
                                 'name' => 'Name*'
                             ],
                             [
-                                'id_option' => 4,
+                                'id_option' => 'ean3',
                                 'name' => 'EAN13'
                             ],
                             [
-                                'id_option' => 5,
+                                'id_option' => 'reference',
                                 'name' => 'Reference #'
                             ],
                             [
-                                'id_option' => 6,
+                                'id_option' => 'upc',
                                 'name' => 'UPC'
                             ],
                             [
-                                'id_option' => 7,
+                                'id_option' => 'isbn',
                                 'name' => 'ISBN'
                             ]
                         ],
                         'id' => 'id_option',
                         'name' => 'name'
                     ],
-                ]
+                ],
+                $this->getSwitchCfg(
+                    'IMPORTPALMIRA_ONLY_UPDATE',
+                    'Только обновление',
+                    'Работает только если выбран уникальный ключ'
+                )
             ],
             'submit' => [
                 'title' => $this->translate('Next step')
@@ -257,6 +263,10 @@ class ImportForm
                 [
                     'type' => 'hidden',
                     'name' => 'IMPORTPALMIRA_FORCE_ID'
+                ],
+                [
+                    'type' => 'hidden',
+                    'name' => 'IMPORTPALMIRA_ONLY_UPDATE'
                 ],
                 [
                     'type' => 'text_save',
