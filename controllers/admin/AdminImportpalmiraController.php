@@ -313,9 +313,31 @@ class AdminImportpalmiraController extends ModuleAdminController
 
     public function ajaxProcessTestAjax()
     {
+        $import_file_path = Tools::getValue('importpalmira_import_file_path');
+        $import_matches = Tools::getValue('importpalmira_type_value');
+        $is_force_id = (bool)Tools::getValue('importpalmira_force_id');
+
+        $fileReader = (new FileReader($import_file_path))->init();
+        $import_data = $fileReader->getData(0, 3) ?? 'error';
+        if ($import_data === 'error') {
+            WebHelpers::echoJson([
+                'import_status' => false,
+                'errors' => $fileReader->getErrors()
+            ]);
+            die;
+        }
+
+        $import_data = ImportHelper::optimize_matching($import_data, $import_matches);
+        $importDb = new ImportDB($this);
+
+
+        foreach ($import_data as $product_item) {
+            $importDb->send($product_item);
+        }
+
+        VarDumper::dump($import_data);
         WebHelpers::echoJson([
-            'response' => 'true',
-            'ajaxprocesstestajax' => true
+            'import_status' => true
         ]);
         die;
     }

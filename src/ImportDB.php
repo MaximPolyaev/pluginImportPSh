@@ -4,6 +4,10 @@
 namespace MaximCode\ImportPalmira;
 
 
+use Configuration;
+use Exception;
+use Hook;
+use PrestaShop\PrestaShop\Adapter\Entity\Address;
 use PrestaShop\PrestaShop\Adapter\Entity\Category;
 use PrestaShop\PrestaShop\Adapter\Entity\Context;
 use PrestaShop\PrestaShop\Adapter\Entity\Feature;
@@ -19,7 +23,13 @@ use PrestaShop\PrestaShop\Adapter\Entity\Shop;
 use PrestaShop\PrestaShop\Adapter\Entity\SpecificPrice;
 use PrestaShop\PrestaShop\Adapter\Entity\StockAvailable;
 use PrestaShop\PrestaShop\Adapter\Entity\Tag;
+use PrestaShop\PrestaShop\Adapter\Entity\TaxManagerFactory;
+use PrestaShop\PrestaShop\Adapter\Entity\TaxRulesGroup;
+use PrestaShop\PrestaShop\Adapter\Product\PriceCalculator;
+use PrestaShop\PrestaShop\Core\Localization\Specification\Price;
 use Symfony\Component\VarDumper\VarDumper;
+use Tools;
+use Validate;
 
 class ImportDB
 {
@@ -28,6 +38,7 @@ class ImportDB
      */
     private $context;
     private $module;
+    private $shop_ids;
     private $shop_id;
     private $currency_id;
     private $country_id;
@@ -43,14 +54,14 @@ class ImportDB
         $this->context = $this->module->getContext();
         $this->language_id = $this->context->language->id;
         $this->products = $this->getProducts();
-        $this->default_lang = \Configuration::get('PS_LANG_DEFAULT') ?? 1;
-        $this->default_category = \Configuration::get('PS_HOME_CATEGORY') ?? 1;
+        $this->default_lang = Configuration::get('PS_LANG_DEFAULT') ?? 1;
+        $this->default_category = Configuration::get('PS_HOME_CATEGORY') ?? 1;
         $this->shop_id = $this->context->shop->id;
         $this->currency_id = $this->context->currency->id;
         $this->country_id = $this->context->country->id;
 
-        $shops_ids = array_values(Shop::getShops(false, null, true));
-        Shop::setContext(Shop::CONTEXT_SHOP, $shops_ids[0]);
+        $this->shop_ids = array_values(Shop::getShops(false, null, true));
+        Shop::setContext(Shop::CONTEXT_SHOP, $this->shop_ids[0]);
     }
 
     public function send($import_product, $is_force_id = false)
@@ -68,7 +79,7 @@ class ImportDB
             }
         }
 
-        $productObj = new Product($import_product['id'] ?? null);
+        $productObj = new Product($import_product['id'] ?? null, true);
         $productObj->id_category_default = $this->default_category;
 //            $product->force_id = true;
 
@@ -79,6 +90,28 @@ class ImportDB
         }
 
         $this->addSimpleFields($productObj, $import_product);
+
+        if (isset($import_product['price_tin']) && !isset($import_product['price_tax'])) {
+            $id_tax_rules_group = 0;
+            if ($import_product['id_tax_rules_group']) {
+                $id_tax_rules_group = $import_product['id_tax_rules_group'];
+            }
+
+            $shop_id = $this->shop_ids[0];
+            if ($import_product['shop']) {
+                $shop_id = (int)$import_product['shop'];
+            }
+
+            $shop = new Shop($shop_id);
+            $address = new Address();
+            $address->company = $shop->name;
+            $address->id_country = Configuration::get('PS_COUNTRY_DEFAULT');
+            $taxManager = TaxManagerFactory::getManager($address, $id_tax_rules_group);
+            $productTaxCalculator = $taxManager->getTaxCalculator();
+            $total_rate = ($productTaxCalculator->getTotalRate() + 100) * 0.01;
+
+            $productObj->price = (float)number_format((float)$import_product['price_tin'] / $total_rate, 6, '.', '');
+        }
 
         if (isset($import_product['supplier_reference'])) {
             $productObj->addSupplierReference('1', 0, $import_product['supplier_reference'] . 'new', '10', '1');
@@ -91,7 +124,7 @@ class ImportDB
         }
 
         if (isset($import_product['ean13'])) {
-            if (\Validate::isEan13($import_product['ean13'])) {
+            if (Validate::isEan13($import_product['ean13'])) {
                 $productObj->ean13 = $import_product['ean13'];
             }
             /*
@@ -100,7 +133,7 @@ class ImportDB
         }
 
         if (isset($import_product['upc'])) {
-            if (\Validate::isUpc($import_product['upc'])) {
+            if (Validate::isUpc($import_product['upc'])) {
                 $productObj->upc = $import_product['upc'];
             }
             /*
@@ -109,7 +142,7 @@ class ImportDB
         }
 
         if (isset($import_product['isbn'])) {
-            if (\Validate::isIsbn($import_product['isbn'])) {
+            if (Validate::isIsbn($import_product['isbn'])) {
                 $productObj->isbn = $import_product['isbn'];
             }
             /*
@@ -168,11 +201,11 @@ class ImportDB
             isset($import_product['file_url']) ||
             (
                 isset($import_product['date_expiration']) &&
-                \Validate::isDate($import_product['date_expiration'])
+                Validate::isDate($import_product['date_expiration'])
             )) {
             if ($productObj->is_virtual) {
                 $product_download_id = ProductDownload::getIdFromIdProduct($productObj->id);
-                $productDownload = new ProductDownload((bool) $product_download_id ? $product_download_id : null);
+                $productDownload = new ProductDownload((bool)$product_download_id ? $product_download_id : null);
 
                 if (isset($import_product['nb_downloadable'])) {
                     $productDownload->nb_downloadable = $import_product['nb_downloadable'];
@@ -182,23 +215,23 @@ class ImportDB
                     $productDownload->nb_days_accessible = $import_product['nb_days_accessible'];
                 }
 
-                if (isset($import_product['date_expiration']) && \Validate::isDate($import_product['date_expiration'])) {
+                if (isset($import_product['date_expiration']) && Validate::isDate($import_product['date_expiration'])) {
                     $productDownload->date_expiration = $import_product['date_expiration'];
                 } else if (strtotime($productDownload->date_expiration) === strtotime('0000-00-00') ||
-                    (bool) $product_download_id) {
+                    (bool)$product_download_id) {
                     $productDownload->date_expiration = '';
                 }
 
-                if (isset($import_product['file_url']) && \Validate::isUrl($import_product['file_url'])) {
+                if (isset($import_product['file_url']) && Validate::isUrl($import_product['file_url'])) {
                     $productDownload->filename = ProductDownload::getNewFilename();
-                    \Tools::copy($import_product['file_url'], _PS_DOWNLOAD_DIR_ . $productDownload->filename);
+                    Tools::copy($import_product['file_url'], _PS_DOWNLOAD_DIR_ . $productDownload->filename);
                     $productDownload->display_filename = basename($import_product['file_url']);
                 }
 
-                if ((bool) $product_download_id) {
+                if ((bool)$product_download_id) {
                     $productDownload->update();
                 } else {
-                    $productDownload->id_product = (int) $productObj->id;
+                    $productDownload->id_product = (int)$productObj->id;
                     $productDownload->add();
                 }
             }
@@ -213,10 +246,10 @@ class ImportDB
                 $enumeration_arr = array_map(function ($enum) use ($productObj) {
                     foreach ($this->products as $p) {
                         if (($enum === $p['id_product'] || $enum == $p['name']) &&
-                            ($this->shop_id === (int) $p['id_shop']) &&
+                            ($this->shop_id === (int)$p['id_shop']) &&
                             $p['id_product'] !== $productObj->id) {
 
-                            return (int) $p['id_product'];
+                            return (int)$p['id_product'];
                         }
                     }
                     return null;
@@ -237,12 +270,12 @@ class ImportDB
 
                 $feature_name = isset($feature[0]) ? $feature[0] : '';
                 $feature_value = isset($feature[1]) ? $feature[1] : '';
-                $position = isset($feature[2]) ? (int) $feature[2] : false;
-                $custom = isset($feature[3]) ? (int) $feature[3] : false;
+                $position = isset($feature[2]) ? (int)$feature[2] : false;
+                $custom = isset($feature[3]) ? (int)$feature[3] : false;
 
                 if (!empty($feature_name) && !empty($feature_value)) {
-                    $id_feature = (int) Feature::addFeatureImport($feature_name, $position);
-                    $id_feature_value = (int) FeatureValue::addFeatureValueImport($id_feature, $feature_value, $productObj->id, $this->language_id, $custom);
+                    $id_feature = (int)Feature::addFeatureImport($feature_name, $position);
+                    $id_feature_value = (int)FeatureValue::addFeatureValueImport($id_feature, $feature_value, $productObj->id, $this->language_id, $custom);
                     Product::addFeatureProductImport($productObj->id, $id_feature, $id_feature_value);
                     Feature::cleanPositions();
                 }
@@ -262,11 +295,11 @@ class ImportDB
 
         if (isset($import_product['image'])) {
             $images_url = explode(',', $import_product['image']);
-            $images_url = array_map(function($image_url) {
+            $images_url = array_map(function ($image_url) {
                 return trim($image_url);
             }, $images_url);
 
-            $product_has_images = (bool) Image::getImages($this->language_id, (int) $productObj->id);
+            $product_has_images = (bool)Image::getImages($this->language_id, (int)$productObj->id);
             foreach ($images_url as $key => $url) {
                 $url = trim($url);
                 $error = false;
@@ -274,7 +307,7 @@ class ImportDB
                     $url = str_replace(' ', '%20', $url);
 
                     $image = new Image();
-                    $image->id_product = (int) $productObj->id;
+                    $image->id_product = (int)$productObj->id;
                     $image->position = Image::getHighestPosition($productObj->id) + 1;
                     $image->cover = (!$key && !$product_has_images) ? true : false;
                     $alt = 'test alt';
@@ -317,11 +350,11 @@ class ImportDB
         }
 
         if (isset($import_product['price_tex'])) {
-            $productObj->price = (float) $import_product['price_tex'];
+            $productObj->price = (float)$import_product['price_tex'];
         }
 
         if (isset($import_product['id_tax_rules_group'])) {
-            $productObj->id_tax_rules_group = $import_product['id_tax_rules_group'];
+            $productObj->id_tax_rules_group = (int)$import_product['id_tax_rules_group'];
         }
 
         if (isset($import_product['wholesale_price'])) {
@@ -431,13 +464,13 @@ class ImportDB
         }
 
         if (isset($import_product['available_date'])) {
-            if (\Validate::isDate($import_product['available_date'])) {
+            if (Validate::isDate($import_product['available_date'])) {
                 $productObj->available_date = $import_product['available_date'];
             }
         }
 
         if (isset($import_product['date_add'])) {
-            if (\Validate::isDate($import_product['date_add'])) {
+            if (Validate::isDate($import_product['date_add'])) {
                 $productObj->date_add = $import_product['date_add'];
             }
         }
@@ -473,11 +506,11 @@ class ImportDB
         }
 
         if (isset($import_product['advanced_stock_management'])) {
-            $productObj->advanced_stock_management = (int) $import_product['advanced_stock_management'];
+            $productObj->advanced_stock_management = (int)$import_product['advanced_stock_management'];
         }
 
         if (isset($import_product['depends_on_stock'])) {
-            $productObj->depends_on_stock = (int) $import_product['depends_on_stock'];
+            $productObj->depends_on_stock = (int)$import_product['depends_on_stock'];
         }
     }
 
@@ -522,10 +555,10 @@ class ImportDB
 //            $specific_price->to = (isset($info['reduction_to']) && \Validate::isDate($info['reduction_to'])) ? $info['reduction_to'] : '0000-00-00 00:00:00';
 
             if (!$specific_price->save()) {
-                return \Tools::displayError('An error occurred while updating the specific price.');
+                return Tools::displayError('An error occurred while updating the specific price.');
             }
-        } catch (\Exception $e) {
-            return \Tools::displayError('An error occurred while updating the specific price. ' . $e);
+        } catch (Exception $e) {
+            return Tools::displayError('An error occurred while updating the specific price. ' . $e);
         }
     }
 
@@ -596,7 +629,7 @@ class ImportDB
     protected static function copyImg($id_entity, $id_image = null, $url = '', $entity = 'products', $regenerate = true)
     {
         $tmpfile = tempnam(_PS_TMP_IMG_DIR_, 'ps_import');
-        $watermark_types = explode(',', \Configuration::get('WATERMARK_TYPES'));
+        $watermark_types = explode(',', Configuration::get('WATERMARK_TYPES'));
 
         switch ($entity) {
             default:
@@ -606,19 +639,19 @@ class ImportDB
 
                 break;
             case 'categories':
-                $path = _PS_CAT_IMG_DIR_ . (int) $id_entity;
+                $path = _PS_CAT_IMG_DIR_ . (int)$id_entity;
 
                 break;
             case 'manufacturers':
-                $path = _PS_MANU_IMG_DIR_ . (int) $id_entity;
+                $path = _PS_MANU_IMG_DIR_ . (int)$id_entity;
 
                 break;
             case 'suppliers':
-                $path = _PS_SUPP_IMG_DIR_ . (int) $id_entity;
+                $path = _PS_SUPP_IMG_DIR_ . (int)$id_entity;
 
                 break;
             case 'stores':
-                $path = _PS_STORE_IMG_DIR_ . (int) $id_entity;
+                $path = _PS_STORE_IMG_DIR_ . (int)$id_entity;
 
                 break;
         }
@@ -650,7 +683,7 @@ class ImportDB
 
         $orig_tmpfile = $tmpfile;
 
-        if (\Tools::copy($url, $tmpfile)) {
+        if (Tools::copy($url, $tmpfile)) {
             // Evaluate the memory required to resize the image: if it's too much, you can't resize it.
             if (!ImageManager::checkImageMemoryLimit($tmpfile)) {
                 @unlink($tmpfile);
@@ -690,16 +723,16 @@ class ImportDB
                             $path_infos[] = array($tgt_width, $tgt_height, $path . '-' . stripslashes($image_type['name']) . '.jpg');
                         }
                         if ($entity == 'products') {
-                            if (is_file(_PS_TMP_IMG_DIR_ . 'product_mini_' . (int) $id_entity . '.jpg')) {
-                                unlink(_PS_TMP_IMG_DIR_ . 'product_mini_' . (int) $id_entity . '.jpg');
+                            if (is_file(_PS_TMP_IMG_DIR_ . 'product_mini_' . (int)$id_entity . '.jpg')) {
+                                unlink(_PS_TMP_IMG_DIR_ . 'product_mini_' . (int)$id_entity . '.jpg');
                             }
-                            if (is_file(_PS_TMP_IMG_DIR_ . 'product_mini_' . (int) $id_entity . '_' . (int) Context::getContext()->shop->id . '.jpg')) {
-                                unlink(_PS_TMP_IMG_DIR_ . 'product_mini_' . (int) $id_entity . '_' . (int) Context::getContext()->shop->id . '.jpg');
+                            if (is_file(_PS_TMP_IMG_DIR_ . 'product_mini_' . (int)$id_entity . '_' . (int)Context::getContext()->shop->id . '.jpg')) {
+                                unlink(_PS_TMP_IMG_DIR_ . 'product_mini_' . (int)$id_entity . '_' . (int)Context::getContext()->shop->id . '.jpg');
                             }
                         }
                     }
                     if (in_array($image_type['id_image_type'], $watermark_types)) {
-                        \Hook::exec('actionWatermark', array('id_image' => $id_image, 'id_product' => $id_entity));
+                        Hook::exec('actionWatermark', array('id_image' => $id_image, 'id_product' => $id_entity));
                     }
                 }
             }
@@ -728,6 +761,6 @@ class ImportDB
 
     public function __destruct()
     {
-        \Tools::clearCache();
+        Tools::clearCache();
     }
 }
