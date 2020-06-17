@@ -4,6 +4,10 @@
 namespace MaximCode\ImportPalmira;
 
 
+use PrestaShop\PrestaShop\Adapter\Entity\Context;
+use PrestaShop\PrestaShop\Adapter\Entity\Db;
+use PrestaShop\PrestaShop\Adapter\Entity\DbQuery;
+use PrestaShop\PrestaShop\Adapter\Entity\Product;
 use Symfony\Component\VarDumper\VarDumper;
 
 class ImportHelper
@@ -41,5 +45,65 @@ class ImportHelper
         }
 
         file_put_contents($json_path, json_encode([]));
+    }
+
+    /**
+     * @param $unique_field string
+     * @param $check_field string
+     * @param $context Context
+     * @return bool
+     */
+    public static function isExistProductByField($unique_field, $check_field, $context)
+    {
+        switch($unique_field) {
+            case 'id':
+                return (bool)Product::getProductName((int)$check_field);
+            case 'name':
+                return (bool)Product::searchByName($context->language->id, $check_field);
+            case 'reference':
+                return (bool)Product::getIdByReference($check_field);
+            case 'ean13':
+                return (bool)Product::getIdByEan13($check_field);
+            case 'upc':
+                return (bool)self::getProductIdByUpc($check_field);
+            case 'isbn':
+                return (bool)self::getProductIdByIsbn($check_field);
+            default:
+                return false;
+        }
+    }
+
+    public static function getProductIdByUpc($upc) {
+        if (empty($upc)) {
+            return 0;
+        }
+
+        if (!\Validate::isUpc($upc)) {
+            return 0;
+        }
+
+        $query = new DbQuery();
+        $query->select('p.id_product');
+        $query->from('product', 'p');
+        $query->where('p.upc = \'' . pSQL($upc) . '\'');
+
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
+    }
+
+    public static function getProductIdByIsbn($isbn) {
+        if (empty($isbn)) {
+            return 0;
+        }
+
+        if (!\Validate::isIsbn($isbn)) {
+            return 0;
+        }
+
+        $query = new DbQuery();
+        $query->select('p.id_product');
+        $query->from('product', 'p');
+        $query->where('p.isbn = \'' . pSQL($isbn) . '\'');
+
+        return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
     }
 }
