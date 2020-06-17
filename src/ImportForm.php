@@ -29,6 +29,7 @@ namespace MaximCode\ImportPalmira;
 
 use PrestaShop\PrestaShop\Adapter\Entity\HelperForm;
 use PrestaShop\PrestaShop\Core\Import\EntityField\Provider\ProductFieldsProvider;
+use Symfony\Component\VarDumper\VarDumper;
 
 
 class ImportForm
@@ -374,11 +375,17 @@ class ImportForm
         $file_path = $this->module->getImportFilePath();
         $fileReader = (new FileReader($file_path))->init();
         $headers = $fileReader->getHeaders();
+
         if (!$headers) {
             return false;
         }
 
-        $products = $fileReader->getData(0, 7);
+
+        $products = $fileReader->getData(
+            0,
+            7,
+            ImportHelper::getFileExt($file_path) === 'xml' ? 0 : 1
+        );
         if (!$products) {
             return false;
         }

@@ -28,6 +28,8 @@
 
 class LongTask {
   is_progress_end = true;
+  is_scroll_errors = true;
+  is_scroll_log = true;
   finishedTasks = [];
 
   startLongTask = (task_id, progress_num = 'none') => {
@@ -219,7 +221,9 @@ class LongTask {
       debugLog.appendChild(p);
     });
 
-    debugLog.scrollTop = debugLog.scrollHeight;
+    if (this.is_scroll_log) {
+      debugLog.scrollTop = debugLog.scrollHeight;
+    }
   }
 
   viewDebugErrors(errors) {
@@ -230,12 +234,22 @@ class LongTask {
       errorLog.appendChild(p);
     });
 
-    errorLog.scrollTop = errorLog.scrollHeight;
+    if (this.is_scroll_errors) {
+      errorLog.scrollTop = errorLog.scrollHeight;
+    }
   }
 
   ajaxErrorCallback = (jqXHR, testStatus, errorThrown) => {
     console.log(errorThrown);
   };
+
+  setScrollErrors(status) {
+    this.is_scroll_errors = status;
+  }
+
+  setScrollLog(status) {
+    this.is_scroll_log = status;
+  }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -254,6 +268,26 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
   });
+
+  const debugErrors = document.getElementById('importpalmira-debug_errors');
+  debugErrors.onmouseover = debugErrors.onmouseout = event => {
+    if (event.type === 'mouseover') {
+      longTask.setScrollErrors(false)
+    }
+    if (event.type === 'mouseout') {
+      longTask.setScrollErrors(true);
+    }
+  };
+
+  const debugLog = document.getElementById('importpalmira-debug_log');
+  debugLog.onmouseover = debugLog.onmouseout = event => {
+    if (event.type === 'mouseover') {
+      longTask.setScrollLog(false)
+    }
+    if (event.type === 'mouseout') {
+      longTask.setScrollLog(true);
+    }
+  };
 });
 
 const ajaxErrorCallback  = function (jqXHR, testStatus, errorThrown) {

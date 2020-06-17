@@ -441,7 +441,7 @@
                                     {foreach from=$input.product_arr_import.products item=$product}
                                       <tr>
                                         {foreach from=$product item=$value}
-                                          <td>{$value}</td>
+                                          <td><div class="td">{$value}</div></td>
                                         {/foreach}
                                       </tr>
                                     {/foreach}

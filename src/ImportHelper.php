@@ -31,23 +31,35 @@ use PrestaShop\PrestaShop\Adapter\Entity\Context;
 use PrestaShop\PrestaShop\Adapter\Entity\Db;
 use PrestaShop\PrestaShop\Adapter\Entity\DbQuery;
 use PrestaShop\PrestaShop\Adapter\Entity\Product;
+use Symfony\Component\VarDumper\VarDumper;
 
 
 class ImportHelper
 {
     public static function optimize_matching($data, $keys)
     {
-        $data = array_map(function ($data_item) use ($keys) {
-            $new_data_item = array_combine($keys, $data_item);
-            $new_data_item = array_filter($new_data_item, function ($key) {
-                return $key !== 'no';
-            }, ARRAY_FILTER_USE_KEY);
+        $new_data = [];
+        foreach ($data as $data_item) {
+            if (count($data_item) === count($keys)) {
+                $new_data_item = array_combine($keys, $data_item);
+                $new_data_item = array_filter($new_data_item, function ($key) {
+                    return $key !== 'no';
+                }, ARRAY_FILTER_USE_KEY);
 
-            return $new_data_item;
-        }, $data);
+                $new_data[] = $new_data_item;
+            }
+        }
+//        $data = array_map(function ($data_item) use ($keys) {
+//            $new_data_item = array_combine($keys, $data_item);
+//            $new_data_item = array_filter($new_data_item, function ($key) {
+//                return $key !== 'no';
+//            }, ARRAY_FILTER_USE_KEY);
+//
+//            return $new_data_item;
+//        }, $data);
 
 
-        return $data;
+        return $new_data;
     }
 
     public static function addUnsavedFile($file_path)
@@ -152,5 +164,12 @@ class ImportHelper
         $query->where('p.isbn = \'' . pSQL($isbn) . '\'');
 
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($query);
+    }
+
+    public static function getFileExt($file_path)
+    {
+        $file_ext = explode('.', $file_path);
+        $file_ext = strtolower(end($file_ext));
+        return $file_ext;
     }
 }

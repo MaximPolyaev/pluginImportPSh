@@ -102,7 +102,7 @@ class CsvFileReader
 
     public function getData($from = 0, $limit = 0, $num_skip_rows = 1)
     {
-        if($from < 0 || $limit < 0) {
+        if ($from < 0 || $limit < 0) {
             return null;
         }
 
