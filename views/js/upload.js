@@ -44,6 +44,8 @@ class LongTask {
         importpalmira_type_value,
         importpalmira_num_skip_rows,
         importpalmira_force_id,
+        importpalmira_only_update,
+        importpalmira_reference_key,
         progress_num: progress_num,
         task: task_id
       },

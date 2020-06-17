@@ -53,7 +53,7 @@ class ImportHelper
      * @param $context Context
      * @return bool
      */
-    public static function isExistProductByField($unique_field, $check_field, $context)
+    public static function isExistProductByField($unique_field, $check_field, $context = null)
     {
         switch($unique_field) {
             case 'id':
@@ -70,6 +70,30 @@ class ImportHelper
                 return (bool)self::getProductIdByIsbn($check_field);
             default:
                 return false;
+        }
+    }
+
+    /**
+     * @param $unique_field
+     * @param $check_field
+     * @param $context
+     * @return array|bool|false|int|string|null
+     */
+    public static function getProductIdByField($unique_field, $check_field, $context)
+    {
+        switch($unique_field) {
+            case 'name':
+                return Product::searchByName($context->language->id, $check_field)[0]['id_product'];
+            case 'reference':
+                return Product::getIdByReference($check_field);
+            case 'ean13':
+                return Product::getIdByEan13($check_field);
+            case 'upc':
+                return self::getProductIdByUpc($check_field);
+            case 'isbn':
+                return self::getProductIdByIsbn($check_field);
+            default:
+                return 0;
         }
     }
 

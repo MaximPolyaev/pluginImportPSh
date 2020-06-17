@@ -185,8 +185,10 @@ class ImportPalmira extends Module
         Media::addJsDef([
             'importpalmira_type_value' => Tools::getValue('IMPORTPALMIRA_TYPE_VALUE'),
             'importpalmira_delete_products' => $is_delete_products,
-            'importpalmira_force_id' => Tools::getValue('IMPORTPALMIRA_FORCE_ID'),
+            'importpalmira_force_id' => (bool)Tools::getValue('IMPORTPALMIRA_FORCE_ID') ? '1' : '',
             'importpalmira_num_skip_rows' => Tools::getValue('IMPORTPALMIRA_NUM_SKIP_ROWS'),
+            'importpalmira_reference_key' => Tools::getValue('IMPORTPALMIRA_REFERENCE_KEY'),
+            'importpalmira_only_update' => (bool)Tools::getValue('IMPORTPALMIRA_ONLY_UPDATE') ? '1' : '',
             'importpalmira_msg_delete_products' => 'Удаление товаров...',
             'importpalmira_msg_import_products' => 'Импорт товаров...'
         ]);

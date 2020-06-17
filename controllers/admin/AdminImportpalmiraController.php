@@ -173,8 +173,14 @@ class AdminImportpalmiraController extends ModuleAdminController
         $num_skip_rows = Tools::getValue('importpalmira_num_skip_rows');
         $import_matches = Tools::getValue('importpalmira_type_value');
         $is_force_id = (bool)Tools::getValue('importpalmira_force_id');
+        $only_update = (bool)Tools::getValue('importpalmira_only_update');
         $progress_num = Tools::getValue('progress_num') ? Tools::getValue('progress_num') : 0;
         $progress_num = $progress_num === 'none' ? 0 : $progress_num;
+
+        $unique_field = Tools::getValue('importpalmira_reference_key');
+        if ($unique_field === 'no') {
+            $unique_field = false;
+        }
 
         $fileReader = (new FileReader($import_file_path))->init();
         $import_data = $fileReader->getData($progress_num, 0, $num_skip_rows) ?? 'error';
@@ -197,24 +203,245 @@ class AdminImportpalmiraController extends ModuleAdminController
 
         $import_data = ImportHelper::optimize_matching($import_data, $import_matches);
         $importDb = new ImportDB($this, $manager);
-//        $products = $importDb->getProducts();
 
         $counter = $progress_num;
         $import_status = true;
 
         foreach ($import_data as $product_item) {
             $end_time = microtime(true) - $start_time;
-            try {
+
+            $manager->setProgressMessage("force_id: $is_force_id, unique_field $unique_field, only_update $only_update");
+
+            $is_import_product = false;
+            if (!$is_force_id && !$only_update && !(bool)$unique_field) {
+                $is_import_product = true;
+            } else if ($is_force_id && !$only_update && !(bool)$unique_field) {
+                if (isset($product_item['id'])) {
+                    if ((int)$product_item['id'] === 0) {
+                        $manager->setProgressError(
+                            "Error import: product ID 0 or '' cannot exist. Import Product: " .
+                            implode(
+                                '; ',
+                                array_map(function ($field) {
+                                    return htmlspecialchars($field);
+                                }, $product_item)
+                            )
+                        );
+                    } else {
+                        $is_import_product = true;
+                    }
+                } else {
+                    $manager->setProgressError(
+                        "Error import: no ID information. Import Product: " .
+                        implode(
+                            '; ',
+                            array_map(function ($field) {
+                                return htmlspecialchars($field);
+                            }, $product_item)
+                        )
+                    );
+                }
+            } else if ($only_update && !(bool)$unique_field) {
+                $manager->setProgressError("Only update does not work with no unique key");
+                WebHelpers::echoJson([
+                    'response' => 'true',
+                    'import_status' => $import_status,
+                    'progress_num' => $counter,
+                    'status_progress' => 'end',
+                    'messages' => ProgressManager::getProgressMessages(true),
+                    'errors' => ProgressManager::getProgressErrors(true)
+                ]);
+                exit;
+            } else if (!$only_update && $unique_field === 'id') { // Force id maybe true and false
+                if (isset($product_item['id'])) {
+                    if ((int)$product_item['id'] === 0) {
+                        $manager->setProgressError(
+                            "Error import: product ID 0 or '' cannot exist. Import Product: " .
+                            implode(
+                                '; ',
+                                array_map(function ($field) {
+                                    return htmlspecialchars($field);
+                                }, $product_item)
+                            )
+                        );
+                    } else if (ImportHelper::isExistProductByField('id', $product_item['id'])) {
+                        $manager->setProgressError(
+                            "Error import: product ID ${product_item['id']} already exists. Import Product: " .
+                            implode(
+                                '; ',
+                                array_map(function ($field) {
+                                    return htmlspecialchars($field);
+                                }, $product_item)
+                            )
+                        );
+                    } else {
+                        $is_import_product = true;
+                    }
+                } else {
+                    $manager->setProgressError(
+                        "Error import: no ID information. Import Product: " .
+                        implode(
+                            '; ',
+                            array_map(function ($field) {
+                                return htmlspecialchars($field);
+                            }, $product_item)
+                        )
+                    );
+                }
+            } else if ($is_force_id && $only_update && $unique_field === 'id') {
+                if (isset($product_item['id'])) {
+                    if ((int)$product_item['id'] === 0) {
+                        $manager->setProgressError(
+                            "Error import: product ID 0 or '' cannot exist. Import Product: " .
+                            implode(
+                                '; ',
+                                array_map(function ($field) {
+                                    return htmlspecialchars($field);
+                                }, $product_item)
+                            )
+                        );
+                    } else if (ImportHelper::isExistProductByField('id', $product_item['id'])) {
+                        $is_import_product = true;
+                    } else {
+                        $manager->setProgressError(
+                            "Error import: product ID ${product_item['id']} does not exist. Import Product: " .
+                            implode(
+                                '; ',
+                                array_map(function ($field) {
+                                    return htmlspecialchars($field);
+                                }, $product_item)
+                            )
+                        );
+                    }
+                } else {
+                    $manager->setProgressError(
+                        "Error import: no ID information. Import Product: " .
+                        implode(
+                            '; ',
+                            array_map(function ($field) {
+                                return htmlspecialchars($field);
+                            }, $product_item)
+                        )
+                    );
+                }
+            } else if (!$is_force_id && !$only_update && (bool)$unique_field) {
+                if (isset($product_item[$unique_field])) {
+                    if (ImportHelper::isExistProductByField(
+                        $unique_field,
+                        $product_item[$unique_field],
+                        $this->context)) {
+                        $manager->setProgressError(
+                            "Error import: product $unique_field ${product_item[$unique_field]} already exists. Import Product: " .
+                            implode(
+                                '; ',
+                                array_map(function ($field) {
+                                    return htmlspecialchars($field);
+                                }, $product_item)
+                            )
+                        );
+                    } else {
+                        $is_import_product = true;
+                    }
+                } else {
+                    $manager->setProgressError(
+                        "Error import: no $unique_field information. Import Product: " .
+                        implode(
+                            '; ',
+                            array_map(function ($field) {
+                                return htmlspecialchars($field);
+                            }, $product_item)
+                        )
+                    );
+                }
+            } else if ($is_force_id && !$only_update && (bool)$unique_field) {
+                if (isset($product_item[$unique_field])) {
+                    if (ImportHelper::isExistProductByField(
+                        $unique_field,
+                        $product_item[$unique_field],
+                        $this->context)) {
+                        $is_import_product = true;
+                        $product_item['id'] = ImportHelper::getProductidByField(
+                            $unique_field,
+                            $product_item[$unique_field],
+                            $this->context
+                        );
+                    } else {
+                        $is_import_product = true;
+                        $product_item['id'] = 0;
+                    }
+                } else {
+                    $manager->setProgressError(
+                        "Error import: no $unique_field information. Import Product: " .
+                        implode(
+                            '; ',
+                            array_map(function ($field) {
+                                return htmlspecialchars($field);
+                            }, $product_item)
+                        )
+                    );
+                }
+            } else if ($is_force_id && $only_update && (bool)$unique_field) {
+                if (isset($product_item[$unique_field])) {
+                    if (ImportHelper::isExistProductByField(
+                        $unique_field,
+                        $product_item[$unique_field],
+                        $this->context)) {
+                        $is_import_product = true;
+                        $product_item['id'] = ImportHelper::getProductidByField(
+                            $unique_field,
+                            $product_item[$unique_field],
+                            $this->context
+                        );
+                    } else {
+                        $manager->setProgressError(
+                            "Error import: product $unique_field ${product_item[$unique_field]} does not exists. Import Product: " .
+                            implode('; ', array_map(function ($field) {
+                                    return htmlspecialchars($field);
+                                }, $product_item)
+                            )
+                        );
+                    }
+                } else {
+                    $manager->setProgressError(
+                        "Error import: no $unique_field information. Import Product: " .
+                        implode(
+                            '; ',
+                            array_map(function ($field) {
+                                return htmlspecialchars($field);
+                            }, $product_item)
+                        )
+                    );
+                }
+            } else if ((bool)$unique_field && $only_update && !$is_force_id) {
+                $manager->setProgressError(
+                    "It is not possible to update goods, because Force ID is not in mode"
+                );
+                WebHelpers::echoJson([
+                    'response' => 'true',
+                    'import_status' => $import_status,
+                    'progress_num' => $counter,
+                    'status_progress' => 'end',
+                    'messages' => ProgressManager::getProgressMessages(true),
+                    'errors' => ProgressManager::getProgressErrors(true)
+                ]);
+                exit;
+            }
+
+            if ($is_import_product) try {
                 $importDb->send($product_item, $is_force_id);
+                $manager->setProgressMessage("Import Product: " . implode('; ', array_map(function ($field) {
+                        return htmlspecialchars($field);
+                    }, $product_item)));
             } catch (Exception $e) {
                 $import_status = false;
-                $manager->setProgressError("Import error. Product: " . implode('; ', array_map(function($field) {return htmlspecialchars($field);}, $product_item)) . "File: {$e->getFile()}. Line: {$e->getLine()}. {$e->getMessage()}");
+                $manager->setProgressError("Import error. Product: " . implode('; ', array_map(function ($field) {
+                        return htmlspecialchars($field);
+                    }, $product_item)) . "File: {$e->getFile()}. Line: {$e->getLine()}. {$e->getMessage()}");
             }
 
             $counter++;
             $manager->incrementProgress();
             $manager->incrementProgressImportNum($counter);
-            $manager->setProgressMessage("Import Product: " . implode('; ', array_map(function($field) {return htmlspecialchars($field);}, $product_item)));
 
             if ($end_time > 10) {
                 WebHelpers::echoJson([

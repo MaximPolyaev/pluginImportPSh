@@ -78,11 +78,11 @@ class ImportForm
     private function getCfgValues()
     {
         return [
-            'IMPORTPALMIRA_DELETE_PRODUCTS' => \Tools::getValue('IMPORTPALMIRA_DELETE_PRODUCTS') ? \Tools::getValue('IMPORTPALMIRA_DELETE_PRODUCTS') : false,
+            'IMPORTPALMIRA_DELETE_PRODUCTS' => (bool)\Tools::getValue('IMPORTPALMIRA_DELETE_PRODUCTS'),
             'IMPORTPALMIRA_CSV_SEPARATOR' => \Tools::getValue('IMPORTPALMIRA_CSV_SEPARATOR') ? \Tools::getValue('IMPORTPALMIRA_CSV_SEPARATOR') : ';',
-            'IMPORTPALMIRA_FORCE_ID' => \Tools::getValue('IMPORTPALMIRA_FORCE_ID') ? \Tools::getValue('IMPORTPALMIRA_FORCE_ID') : false,
-            'IMPORTPALMIRA_REFERENCE_KEY' => \Tools::getValue('IMPORTPALMIRA_REFERENCE_KEY') ? \Tools::getValue('IMPORTPALMIRA_REFERENCE_KEY') : 1,
-            'IMPORTPALMIRA_ONLY_UPDATE' => (bool)\Tools::getValue('IMPORTPALMIRA_ONLY_UPDATE'),
+            'IMPORTPALMIRA_FORCE_ID' => (bool)\Tools::getValue('IMPORTPALMIRA_FORCE_ID') ? '1' : '',
+            'IMPORTPALMIRA_REFERENCE_KEY' => \Tools::getValue('IMPORTPALMIRA_REFERENCE_KEY') ? \Tools::getValue('IMPORTPALMIRA_REFERENCE_KEY') : 'no',
+            'IMPORTPALMIRA_ONLY_UPDATE' => (bool)\Tools::getValue('IMPORTPALMIRA_ONLY_UPDATE') ? '1' : '',
             'IMPORTPALMIRA_XML_SINGLE_NAME' => 'offer',
             'IMPORTPALMIRA_FILE_IMPORT' => '',
             'IMPORTPALMIRA_FILE_IMPORT_SAVE' => false,
@@ -190,7 +190,7 @@ class ImportForm
                                 'name' => 'Name*'
                             ],
                             [
-                                'id_option' => 'ean3',
+                                'id_option' => 'ean13',
                                 'name' => 'EAN13'
                             ],
                             [
