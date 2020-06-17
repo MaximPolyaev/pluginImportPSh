@@ -27,160 +27,55 @@
 namespace MaximCode\ImportPalmira;
 
 
-use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\HttpFoundation\File\File;
-
-
 class FileReader
 {
-    private $file_path;
-    private $fs;
-    private $file;
-    private $file_open;
-    private $headers;
-    private $delimiter;
-    private $data;
-    private $errors = [];
-    private $str_length;
-    private $data_from;
-    private $data_limit;
-    private $num_skip_rows;
+    private $file_ext;
+    private $reader;
 
     public function __construct($file_path)
     {
-        $this->file_path = $file_path;
-        $this->fs = new Filesystem();
+        $this->file_ext = $this->getFileExt($file_path);
+
+        switch($this->file_ext) {
+            case 'xml':
+                $this->reader = new XmlFileReader($file_path);
+                break;
+            case 'csv':
+                $this->reader = new CsvFileReader($file_path);
+                break;
+            default:
+                throw new \Exception("Invalid file extension $this->file_ext");
+        }
 
         return $this;
     }
 
-    public function init($str_length = 2000)
+    public function init()
     {
-        $post_delimiter = \Tools::getValue('IMPORTPALMIRA_CSV_SEPARATOR');
-        $this->delimiter = $post_delimiter ? $post_delimiter : ';';
-        $this->str_length = $str_length;
-
-        if (!$this->isExists($this->file_path)) {
-            $this->errors[] = 'The file does not exist';
-            return $this;
-        }
-
-        $this->file = new File($this->file_path);
-        if ($this->file->getSize() == 0) {
-            $this->errors[] = 'This file is empty';
-            return $this;
-        }
-
-        $this->file_path = $this->file->getRealPath();
-        $this->file_open = fopen($this->file_path, 'r');
-
-        if (!$this->file_open) {
-            $this->errors[] = 'Error open file';
-            return $this;
-        }
+        $this->reader->init();
 
         return $this;
     }
 
     public function getErrors()
     {
-        return $this->errors;
+        return $this->reader->getErrors();
     }
 
     public function getHeaders()
     {
-        if (empty($this->headers) || is_null($this->headers)) {
-            $this->readHeaders();
-
-            if (empty($this->headers) || is_null($this->headers)) {
-                $this->errors[] = 'Error read headers';
-                return false;
-            }
-        }
-
-        return $this->headers;
+        return $this->reader->getHeaders();
     }
 
     public function getData($from = 0, $limit = 0, $num_skip_rows = 1)
     {
-        if($from < 0 || $limit < 0) {
-            return null;
-        }
-
-        $this->data_from = $from;
-        $this->data_limit = $limit;
-        $this->num_skip_rows = $num_skip_rows;
-
-        $this->readData();
-
-        if (empty($this->data) || is_null($this->data)) {
-            return null;
-        }
-
-        return $this->data;
+        return $this->reader->getData($from, $limit, $num_skip_rows);
     }
 
-    private function readHeaders()
+    private function getFileExt($file_path)
     {
-        $this->headers = fgetcsv($this->file_open, $this->str_length, $this->delimiter);
-    }
-
-    private function readData()
-    {
-        $counter = 0;
-
-        $this->data_from += (int)$this->num_skip_rows;
-
-        if (!empty($this->headers)) {
-            if ($this->data_from === 0) {
-                $this->data[] = $this->headers;
-                if ($this->data_limit > 0) {
-                    $this->data_limit--;
-                }
-            } else if ($this->data_from > 0) {
-                $this->data_from--;
-            }
-        }
-
-        $to = $this->data_from + $this->data_limit;
-
-        while (($row = fgetcsv($this->file_open, $this->str_length, $this->delimiter)) !== false) {
-            if ($this->data_from === 0 && $to === 0) {
-                $this->data[] = $row;
-                continue;
-            } else if ($this->data_from === 0 && $this->data_limit > 0) {
-                if ($counter < $to) {
-                    $this->data[] = $row;
-                } else {
-                    return;
-                }
-            } else if ($this->data_from > 0 && $this->data_limit === 0 && $counter >= $this->data_from) {
-                $this->data[] = $row;
-            } else if ($this->data_from > 0 && $this->data_limit > 0 && $counter >= $this->data_from) {
-                if ($counter < $to) {
-                    $this->data[] = $row;
-                } else {
-                    return;
-                }
-            }
-
-            $counter++;
-        }
-    }
-
-    private function isExists($file_path)
-    {
-        if ($file_path === null || $file_path === '') {
-            return false;
-        }
-
-        return $this->fs->exists($file_path);
-    }
-
-    public function __destruct()
-    {
-        if ($this->file_open) {
-            fclose($this->file_open);
-        }
+        $file_ext = explode('.', $file_path);
+        $file_ext = strtolower(end($file_ext));
+        return $file_ext;
     }
 }
