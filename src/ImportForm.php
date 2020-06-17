@@ -26,11 +26,10 @@
 
 namespace MaximCode\ImportPalmira;
 
+
 use PrestaShop\PrestaShop\Adapter\Entity\HelperForm;
-use PrestaShop\PrestaShop\Core\Foundation\Filesystem\FileSystem;
 use PrestaShop\PrestaShop\Core\Import\EntityField\Provider\ProductFieldsProvider;
-use Symfony\Component\Finder\Finder;
-use Symfony\Component\VarDumper\VarDumper;
+
 
 class ImportForm
 {

@@ -1,4 +1,28 @@
 <?php
+/**
+ * 2007-2020 PrestaShop
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@prestashop.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+ * versions in the future. If you wish to customize PrestaShop for your
+ * needs please refer to http://www.prestashop.com for more information.
+ *
+ * @author    PrestaShop SA <contact@prestashop.com>
+ * @copyright 2007-2020 PrestaShop SA
+ * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *  International Registered Trademark & Property of PrestaShop SA
+ */
 
 use MaximCode\ImportPalmira\FileReader;
 use MaximCode\ImportPalmira\ImportDB;
@@ -9,7 +33,6 @@ use MaximCode\ImportPalmira\SessionHelper;
 use MaximCode\ImportPalmira\TaskHelper;
 use MaximCode\ImportPalmira\WebHelpers;
 use PrestaShop\PrestaShop\Adapter\Entity\Product;
-use Symfony\Component\VarDumper\VarDumper;
 
 
 class AdminImportpalmiraController extends ModuleAdminController
@@ -139,27 +162,6 @@ class AdminImportpalmiraController extends ModuleAdminController
         }
     }
 
-    public function ajaxProcessImportOne()
-    {
-        set_time_limit(0);
-
-        switch (Tools::getValue('type_task')) {
-            case 'import_products':
-                $this->importProducts();
-                break;
-            case 'delete_products':
-                $this->deleteProducts();
-                break;
-            default:
-                WebHelpers::echoJson([
-                    'response' => 'true',
-                    'type_task' => 'empty'
-                ]);
-                die;
-        }
-        die;
-    }
-
     private function importProducts()
     {
         $start_time = microtime(true);
@@ -209,8 +211,6 @@ class AdminImportpalmiraController extends ModuleAdminController
 
         foreach ($import_data as $product_item) {
             $end_time = microtime(true) - $start_time;
-
-            $manager->setProgressMessage("force_id: $is_force_id, unique_field $unique_field, only_update $only_update");
 
             $is_import_product = false;
             if (!$is_force_id && !$only_update && !(bool)$unique_field) {
@@ -540,31 +540,17 @@ class AdminImportpalmiraController extends ModuleAdminController
 
     public function ajaxProcessTestAjax()
     {
-        $import_file_path = Tools::getValue('importpalmira_import_file_path');
-        $import_matches = Tools::getValue('importpalmira_type_value');
-        $is_force_id = (bool)Tools::getValue('importpalmira_force_id');
-
-        $fileReader = (new FileReader($import_file_path))->init();
-        $import_data = $fileReader->getData(0, 3) ?? 'error';
-        if ($import_data === 'error') {
-            WebHelpers::echoJson([
-                'import_status' => false,
-                'errors' => $fileReader->getErrors()
-            ]);
-            die;
-        }
-
-        $import_data = ImportHelper::optimize_matching($import_data, $import_matches);
-        $importDb = new ImportDB($this);
-
-
-        foreach ($import_data as $product_item) {
-            $importDb->send($product_item);
-        }
-
-        VarDumper::dump($import_data);
         WebHelpers::echoJson([
             'import_status' => true
+        ]);
+        die;
+    }
+
+    public function ajaxProcessImportOne()
+    {
+        WebHelpers::echoJson([
+            'response' => 'true',
+            'type_task' => 'empty'
         ]);
         die;
     }

@@ -30,12 +30,13 @@ if (!defined('_PS_VERSION_')) {
 
 require_once _PS_MODULE_DIR_ . 'importpalmira/vendor/autoload.php';
 
+
 use MaximCode\ImportPalmira\FileUploader;
 use MaximCode\ImportPalmira\Flash;
 use MaximCode\ImportPalmira\ImportForm;
 use MaximCode\ImportPalmira\ImportHelper;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\VarDumper\VarDumper;
+
 
 class ImportPalmira extends Module
 {
