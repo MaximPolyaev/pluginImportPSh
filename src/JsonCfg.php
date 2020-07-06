@@ -45,7 +45,7 @@ class JsonCfg
     public function save($name, $data)
     {
         if (isset($this->fileContent[$name])) {
-            $this->save_errors[] = "Имя конфигурации существует, выбирите другое имя";
+            $this->save_errors[] = "Имя конфигурации существует, выберите другое имя";
             $this->save_status = false;
             return;
         }

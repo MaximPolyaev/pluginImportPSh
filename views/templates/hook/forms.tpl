@@ -42,8 +42,8 @@
     <div class="mp-step {if $import_step == 1}active{/if}">
       <div class="mp-step-circle"><span>2</span></div>
       <div class="mp-step-title">{l s='Match your data' d='Modules.Importpalmira.Step'}</div>
-      <div class="mp-step-optional mp-done-optional">{l s='Success' d='Modules.Importpalmira.Step'}<i
-                class="material-icons">done</i></div>
+{*      <div class="mp-step-optional mp-done-optional">{l s='Success' d='Modules.Importpalmira.Step'}<i*}
+{*                class="material-icons">done</i></div>*}
       <div class="mp-step-bar-left"></div>
       <div class="mp-step-bar-right"></div>
     </div>

@@ -33,6 +33,8 @@ use MaximCode\ImportPalmira\SessionHelper;
 use MaximCode\ImportPalmira\TaskHelper;
 use MaximCode\ImportPalmira\WebHelpers;
 use PrestaShop\PrestaShop\Adapter\Entity\Product;
+use PrestaShop\PrestaShop\Adapter\Entity\Shop;
+use Symfony\Component\VarDumper\VarDumper;
 
 
 class AdminImportpalmiraController extends ModuleAdminController
@@ -75,12 +77,17 @@ class AdminImportpalmiraController extends ModuleAdminController
                             'errors' => ProgressManager::getProgressErrors(true)
                         ]);
                     else
-                        WebHelpers::echoJson([]);
+                        WebHelpers::echoJson([
+                            'response' => 'true',
+                            'type_task' => 'empty',
+                            'progress' => 0
+                        ]);
                     die;
                 default:
                     WebHelpers::echoJson([
                         'response' => 'true',
-                        'type_task' => 'empty'
+                        'type_task' => 'empty',
+                        'progress' => '0'
                     ]);
                     die;
             }
@@ -88,7 +95,8 @@ class AdminImportpalmiraController extends ModuleAdminController
             WebHelpers::echoJson([
                 'response' => 'true',
                 'type_task' => 'empty',
-                'errors' => ['get progress error: ' . $e->getMessage()]
+                'errors' => ['get progress error: ' . $e->getMessage()],
+                'progress' => '0'
             ]);
             die;
         }
@@ -360,7 +368,7 @@ class AdminImportpalmiraController extends ModuleAdminController
                         $product_item[$unique_field],
                         $this->context)) {
                         $is_import_product = true;
-                        $product_item['id'] = ImportHelper::getProductidByField(
+                        $product_item['id'] = ImportHelper::getProductIdByField(
                             $unique_field,
                             $product_item[$unique_field],
                             $this->context
@@ -387,7 +395,7 @@ class AdminImportpalmiraController extends ModuleAdminController
                         $product_item[$unique_field],
                         $this->context)) {
                         $is_import_product = true;
-                        $product_item['id'] = ImportHelper::getProductidByField(
+                        $product_item['id'] = ImportHelper::getProductIdByField(
                             $unique_field,
                             $product_item[$unique_field],
                             $this->context
@@ -540,9 +548,26 @@ class AdminImportpalmiraController extends ModuleAdminController
 
     public function ajaxProcessTestAjax()
     {
-        WebHelpers::echoJson([
-            'import_status' => true
-        ]);
+        if (!empty($this->products)) {
+            return $this->products;
+        }
+
+        $save_shop_id = $this->context->shop->id;
+        $shop_ids = Shop::getShops(false, null, true);
+
+        $products = [];
+        foreach ($shop_ids as $shop_id) {
+            Shop::setContext(Shop::CONTEXT_SHOP, (int)$shop_id);
+            $this->context->shop->id = (int)$shop_id;
+            $products = array_merge($products, Product::getProducts($this->context->language->id, 0, 0, 'id_product', 'ASC', false, false, $this->context));
+        }
+
+        $this->context->shop->id = $save_shop_id;
+        $shops_ids = array_values(Shop::getShops(false, null, true));
+        Shop::setContext(Shop::CONTEXT_SHOP, $shops_ids[0]);
+
+        VarDumper::dump($products);
+
         die;
     }
 

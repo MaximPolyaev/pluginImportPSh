@@ -36,6 +36,7 @@ use MaximCode\ImportPalmira\Flash;
 use MaximCode\ImportPalmira\ImportForm;
 use MaximCode\ImportPalmira\ImportHelper;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\VarDumper\VarDumper;
 
 
 class ImportPalmira extends Module
@@ -144,6 +145,7 @@ class ImportPalmira extends Module
 
     public function renderStepOne()
     {
+        VarDumper::dump($this->getIdentifier());
         ImportHelper::cleanUnsavedFiles();
 
         $isError = $this->flash->get('step_one_is_error');

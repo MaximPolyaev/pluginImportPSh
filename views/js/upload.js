@@ -90,16 +90,20 @@ class LongTask {
         task: task_id
       },
       success: (data) => {
-        if (data.count_products !== undefined) {
-          jQuery('#importpalmira-num-products').text(data.count_products);
+        if (data === null) {
+          setTimeout( () => {
+            this.monitorProgress(task_id);
+          }, 1000);
+          return;
+        }
+        if (data.messages !== undefined) {
+          if (Array.isArray(data.messages))
+            this.viewDebugMessages(data.messages);
         }
 
-        if (data.messages !== undefined && Array.isArray(data.messages)) {
-          this.viewDebugMessages(data.messages);
-        }
-
-        if (data.errors !== undefined && Array.isArray(data.errors)) {
-          this.viewDebugErrors(data.errors);
+        if (data.errors !== undefined) {
+          if (Array.isArray(data.errors))
+            this.viewDebugErrors(data.errors);
         }
 
         if (jQuery.inArray(task_id, this.finishedTasks) != -1) {
@@ -257,17 +261,25 @@ document.addEventListener('DOMContentLoaded', function () {
     testAjax();
   }
 
-  const btnStart = document.querySelector('#btnstartprogress');
+  // const btnStart = document.querySelector('#btnstartprogress');
   const longTask = new LongTask();
-  btnStart.addEventListener('click', () => {
-    if (longTask.is_progress_end && importpalmira_delete_products !== undefined) {
-      if (importpalmira_delete_products) {
-        longTask.runTask('delete_all_products');
-      } else {
-        longTask.runTask('import_products');
-      }
+  // btnStart.addEventListener('click', () => {
+  //   if (longTask.is_progress_end && importpalmira_delete_products !== undefined) {
+  //     if (importpalmira_delete_products) {
+  //       longTask.runTask('delete_all_products');
+  //     } else {
+  //       longTask.runTask('import_products');
+  //     }
+  //   }
+  // });
+
+  if (longTask.is_progress_end && importpalmira_delete_products !== undefined) {
+    if (importpalmira_delete_products) {
+      longTask.runTask('delete_all_products');
+    } else {
+      longTask.runTask('import_products');
     }
-  });
+  }
 
   const debugErrors = document.getElementById('importpalmira-debug_errors');
   debugErrors.onmouseover = debugErrors.onmouseout = event => {

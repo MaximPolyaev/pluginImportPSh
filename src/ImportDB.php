@@ -31,6 +31,7 @@ namespace MaximCode\ImportPalmira;
 use Configuration;
 use Exception;
 use Hook;
+use Symfony\Component\VarDumper\VarDumper;
 use Tools;
 use Validate;
 use PrestaShop\PrestaShop\Adapter\Entity\Address;
@@ -148,34 +149,6 @@ class ImportDB
         if (isset($import_product['manufacturer'])) {
             $productObj->id_manufacturer = Manufacturer::getIdByName($import_product['manufacturer']) ?? 0;
         }
-
-        if (isset($import_product['ean13'])) {
-            if (Validate::isEan13($import_product['ean13'])) {
-                $productObj->ean13 = $import_product['ean13'];
-            }
-            /*
-             * else output error
-             */
-        }
-
-        if (isset($import_product['upc'])) {
-            if (Validate::isUpc($import_product['upc'])) {
-                $productObj->upc = $import_product['upc'];
-            }
-            /*
-             * else output error
-             */
-        }
-
-        if (isset($import_product['isbn'])) {
-            if (Validate::isIsbn($import_product['isbn'])) {
-                $productObj->isbn = $import_product['isbn'];
-            }
-            /*
-             * else output error
-             */
-        }
-
 
         if ($is_update) {
             $productObj->update();
@@ -474,7 +447,9 @@ class ImportDB
         }
 
         if (isset($import_product['link_rewrite'])) {
-            $productObj->link_rewrite = $import_product['link_rewrite'];
+            if (Validate::isLinkRewrite($import_product['link_rewrite'])) {
+                $productObj->link_rewrite = $import_product['link_rewrite'];
+            }
         }
 
         if (isset($import_product['available_now'])) {
@@ -538,15 +513,37 @@ class ImportDB
         if (isset($import_product['depends_on_stock'])) {
             $productObj->depends_on_stock = (int)$import_product['depends_on_stock'];
         }
+
+        if (isset($import_product['ean13'])) {
+            if (Validate::isEan13($import_product['ean13'])) {
+                $productObj->ean13 = $import_product['ean13'];
+            }
+        }
+
+        if (isset($import_product['upc'])) {
+            if (Validate::isUpc($import_product['upc'])) {
+                $productObj->upc = $import_product['upc'];
+            }
+        }
+
+        if (isset($import_product['isbn'])) {
+            if (Validate::isIsbn($import_product['isbn'])) {
+                $productObj->isbn = $import_product['isbn'];
+            }
+        }
     }
 
     public function addSpecificPrice($product_id, $info)
     {
         try {
             $id_shop = $this->shop_id;
-            $specific_price = SpecificPrice::getSpecificPrice((int)$product_id, $id_shop, 1, 0, 0, 1, 0, 0, 0, 0);
+            $specific_price = SpecificPrice::getByProductID($product_id);
 
+            $specific_price = empty($specific_price) ? [] : $specific_price[0];
+
+            $specific_price_force = false;
             if (is_array($specific_price) && isset($specific_price['id_specific_price'])) {
+                $specific_price_force = true;
                 $specific_price = new SpecificPrice((int)$specific_price['id_specific_price']);
             } else {
                 $specific_price = new SpecificPrice();
@@ -586,9 +583,16 @@ class ImportDB
                 $specific_price->to = '0000-00-00 00:00:00';
             }
 
-            if (!$specific_price->save()) {
-                $this->progressManager->setProgressError('An error occurred while updating the specific price.');
-                return;
+            if ($specific_price_force) {
+                if (!$specific_price->update()) {
+                    $this->progressManager->setProgressError('An error occurred while updating the specific price.');
+                    return;
+                }
+            } else {
+                if (!$specific_price->add()) {
+                    $this->progressManager->setProgressError('An error occurred while updating the specific price.');
+                    return;
+                }
             }
         } catch (Exception $e) {
             $this->progressManager->setProgressError('An error occurred while updating the specific price. ' . $e);
@@ -601,7 +605,7 @@ class ImportDB
         $is_update = false;
         if (isset($import_product['id'])) {
             foreach ($this->products as $product_item) {
-                if ($product_item['id_product'] === $import_product['id']) {
+                if ((int)$product_item['id_product'] === (int)$import_product['id']) {
                     $is_update = true;
                     break;
                 }

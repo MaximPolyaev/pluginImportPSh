@@ -49,6 +49,7 @@ class ImportHelper
                 $new_data[] = $new_data_item;
             }
         }
+
 //        $data = array_map(function ($data_item) use ($keys) {
 //            $new_data_item = array_combine($keys, $data_item);
 //            $new_data_item = array_filter($new_data_item, function ($key) {

@@ -99,7 +99,7 @@ class ProgressManager
     public function __destruct()
     {
         SessionHelper::init();
-//        SessionHelper::remove('progress' . $this->task_id);
+//       SessionHelper::remove('progress' . $this->task_id);
     }
 
     //Получение значения прогресса для идентификатора задачи, переданного клиентом

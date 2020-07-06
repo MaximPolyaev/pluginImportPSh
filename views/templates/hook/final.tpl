@@ -36,8 +36,8 @@
     <div class="mp-step active">
       <div class="mp-step-circle"><span>2</span></div>
       <div class="mp-step-title">{l s='Match your data' d='Modules.Importpalmira.Step'}</div>
-      <div class="mp-step-optional mp-done-optional">{l s='Success' d='Modules.Importpalmira.Step'}<i
-                class="material-icons">done</i></div>
+{*      <div class="mp-step-optional mp-done-optional">{l s='Success' d='Modules.Importpalmira.Step'}<i*}
+{*                class="material-icons">done</i></div>*}
       <div class="mp-step-bar-left"></div>
       <div class="mp-step-bar-right"></div>
     </div>
@@ -50,11 +50,11 @@
   </div>
   <hr>
   <div>
-    <div>
-      <button id="btntestajax">btn-test-ajax</button>
-      <button id="btnstartprogress">Btn start progress</button>
-      <button id="btntestimportone">Btn test import one</button>
-    </div>
+{*    <div>*}
+{*      <button id="btntestajax">btn-test-ajax</button>*}
+{*      <button id="btnstartprogress">Btn start progress</button>*}
+{*      <button id="btntestimportone">Btn test import one</button>*}
+{*    </div>*}
     <div id="importpalmira-progress_div">
       <h2 style="font-size: 4rem; text-align: center"><span id="importpalmira_progress_msg">{if $is_delete_products}{l s='Removing Products' d='Modules.Importpalmira.Step'}{else}{l s='Product loading' d='Modules.Importpalmira.Step'}{/if}...</span><span id="importpalmira_progress_txt">0 %</span></h2>
       <div class="importpalmira-progress {if $is_delete_products}importpalmira-progress__red{/if}">
